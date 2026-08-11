@@ -28,8 +28,10 @@ public class ZonaService {
     }
 
     public Zona update(Long id, Zona zonaDetails) {
-        Zona zona = findById(id).orElseThrow(() -> new RuntimeException("Zona no encontrada: " + id));
-        zona.setLocalidad(zonaDetails.getLocalidad());
+        Zona zona = findById(id)
+                .orElseThrow(() -> new RuntimeException("Zona no encontrada: " + id));
+        zona.setNombre(zonaDetails.getNombre());
+
         return zonaRepository.save(zona);
     }
 

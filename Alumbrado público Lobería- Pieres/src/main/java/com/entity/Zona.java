@@ -15,8 +15,6 @@ public class Zona {
     @Column(nullable = false, unique = true)
     private String nombre;
 
-    private String localidad;
-
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
