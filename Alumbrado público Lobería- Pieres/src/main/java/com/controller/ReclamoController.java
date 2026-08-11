@@ -1,5 +1,7 @@
 package com.controller;
 
+import com.dto.ReclamoRequest;
+import com.dto.ReclamoResponse;
 import com.entity.Reclamo;
 import com.service.ReclamoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +38,8 @@ public class ReclamoController {
     }
 
     @PostMapping
-    public ResponseEntity<Reclamo> create(@RequestBody Reclamo reclamo) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(reclamoService.save(reclamo));
+    public ResponseEntity<ReclamoResponse> create(@RequestBody ReclamoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(reclamoService.create(request));
     }
 
     @PatchMapping("/{id}/estado")
@@ -45,9 +47,4 @@ public class ReclamoController {
         return ResponseEntity.ok(reclamoService.updateEstado(id, estado));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        reclamoService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
 }
