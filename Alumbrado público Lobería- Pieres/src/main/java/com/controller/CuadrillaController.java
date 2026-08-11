@@ -38,4 +38,11 @@ public class CuadrillaController {
         cuadrillaService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Cuadrilla> update(
+            @PathVariable Long id,
+            @RequestBody Cuadrilla cuadrilla) {
+        return ResponseEntity.ok(cuadrillaService.update(id, cuadrilla));
+    }
 }

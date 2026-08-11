@@ -1,5 +1,6 @@
 package com.controller;
 
+import com.dto.CuadrillaTecnicoRequest;
 import com.entity.CuadrillaTecnico;
 import com.service.CuadrillaTecnicoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class CuadrillaTecnicoController {
     }
 
     @PostMapping
-    public ResponseEntity<CuadrillaTecnico> assign(@RequestBody CuadrillaTecnico cuadrillaTecnico) {
+    public ResponseEntity<CuadrillaTecnico> assign(@RequestBody CuadrillaTecnicoRequest cuadrillaTecnico) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cuadrillaTecnicoService.assignTecnico(cuadrillaTecnico));
     }
 
@@ -30,5 +31,14 @@ public class CuadrillaTecnicoController {
     public ResponseEntity<Void> remove(@PathVariable Long id) {
         cuadrillaTecnicoService.removeTecnico(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/tecnico/{tecnicoId}")
+    public ResponseEntity<List<CuadrillaTecnico>> getByTecnico(
+            @PathVariable Long tecnicoId) {
+
+        return ResponseEntity.ok(
+                cuadrillaTecnicoService.findByUsuario(tecnicoId)
+        );
     }
 }

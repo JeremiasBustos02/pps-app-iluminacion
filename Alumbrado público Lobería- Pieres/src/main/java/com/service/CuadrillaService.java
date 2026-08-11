@@ -32,4 +32,13 @@ public class CuadrillaService {
         cuadrilla.setDeletedAt(LocalDateTime.now());
         cuadrillaRepository.save(cuadrilla);
     }
+
+    public Cuadrilla update(Long id, Cuadrilla updatedCuadrilla) {
+        Cuadrilla existingCuadrilla = findById(id)
+                .orElseThrow(() -> new RuntimeException("Cuadrilla no encontrada: " + id));
+
+        existingCuadrilla.setNombre(updatedCuadrilla.getNombre());
+
+        return cuadrillaRepository.save(existingCuadrilla);
+    }
 }

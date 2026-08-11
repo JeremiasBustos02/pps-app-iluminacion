@@ -20,7 +20,6 @@ public class Usuario {
     private String email;
 
     @Column(name = "password_hash", nullable = false)
-    @JsonIgnore
     private String passwordHash;
 
     private Long dni;
