@@ -1,12 +1,13 @@
 package com.controller;
 
-import com.dto.ReclamoRequest;
-import com.dto.ReclamoResponse;
+import com.dto.ReclamoDTO;
+import com.dto.ReclamoResponseDTO;
 import com.entity.Reclamo;
 import com.service.ReclamoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,33 +19,56 @@ public class ReclamoController {
     @Autowired
     private ReclamoService reclamoService;
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'TECNICO')")
     @GetMapping
-    public ResponseEntity<List<Reclamo>> getAll() {
-        return ResponseEntity.ok(reclamoService.findAll());
+    public ResponseEntity<List<ReclamoResponseDTO>> getAll() {
+        List<ReclamoResponseDTO> list = reclamoService.findAll().stream()
+                .map(ReclamoResponseDTO::new)
+                .toList();
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Reclamo> getById(@PathVariable Long id) {
+    public ResponseEntity<ReclamoResponseDTO> getById(@PathVariable Long id) {
         return reclamoService.findById(id)
-                .map(ResponseEntity::ok)
+                .map(r -> ResponseEntity.ok(new ReclamoResponseDTO(r)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/seguimiento/{numeroSeguimiento}")
-    public ResponseEntity<Reclamo> getBySeguimiento(@PathVariable String numeroSeguimiento) {
+    public ResponseEntity<ReclamoResponseDTO> getBySeguimiento(@PathVariable String numeroSeguimiento) {
         return reclamoService.findByNumeroSeguimiento(numeroSeguimiento)
-                .map(ResponseEntity::ok)
+                .map(r -> ResponseEntity.ok(new ReclamoResponseDTO(r)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/usuario/{usuarioId}")
+    @PreAuthorize("hasAnyRole('VECINO', 'ADMINISTRADOR')")
+    public ResponseEntity<List<ReclamoResponseDTO>> getByUsuario(@PathVariable Long usuarioId) {
+        List<ReclamoResponseDTO> list = reclamoService.findByUsuario(usuarioId).stream()
+                .map(ReclamoResponseDTO::new)
+                .toList();
+        return ResponseEntity.ok(list);
+    }
+
     @PostMapping
-    public ResponseEntity<ReclamoResponse> create(@RequestBody ReclamoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(reclamoService.create(request));
+    @PreAuthorize("hasAnyRole('VECINO', 'ADMINISTRADOR')")
+    public ResponseEntity<ReclamoResponseDTO> create(@RequestBody ReclamoDTO dto) {
+        Reclamo nuevoReclamo = reclamoService.saveFromDTO(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ReclamoResponseDTO(nuevoReclamo));
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<Reclamo> updateEstado(@PathVariable Long id, @RequestParam String estado) {
-        return ResponseEntity.ok(reclamoService.updateEstado(id, estado));
+    @PreAuthorize("hasAnyRole('TECNICO', 'ADMINISTRADOR')")
+    public ResponseEntity<ReclamoResponseDTO> updateEstado(@PathVariable Long id, @RequestParam String estado) {
+        Reclamo actualizado = reclamoService.updateEstado(id, estado);
+        return ResponseEntity.ok(new ReclamoResponseDTO(actualizado));
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        reclamoService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

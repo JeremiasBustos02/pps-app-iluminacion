@@ -7,6 +7,7 @@ import com.service.LuminariaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,18 +42,22 @@ public class LuminariaController {
                 .toList();
         return ResponseEntity.ok(list);
     }
-    
+
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Luminaria> create(@RequestBody LuminariaDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(luminariaService.save(dto));
     }
 
+
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Luminaria> update(@PathVariable Long id, @RequestBody LuminariaDTO dto) {
         return ResponseEntity.ok(luminariaService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         luminariaService.delete(id);
         return ResponseEntity.noContent().build();

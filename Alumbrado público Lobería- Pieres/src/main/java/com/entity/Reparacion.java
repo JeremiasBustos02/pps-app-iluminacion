@@ -13,7 +13,11 @@ public class Reparacion {
     private Long id;
 
     private String observacion;
-    private LocalDateTime fecha;
+    private LocalDateTime fecha = LocalDateTime.now();
+
+    @ManyToOne
+    @JoinColumn(name = "reclamo_id")
+    private Reclamo reclamo;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

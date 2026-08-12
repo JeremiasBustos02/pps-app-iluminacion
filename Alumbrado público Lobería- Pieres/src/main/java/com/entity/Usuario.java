@@ -1,6 +1,6 @@
 package com.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.enums.Rol;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -14,7 +14,10 @@ public class Usuario {
     private Long id;
 
     private String nombre;
-    private String rol;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Rol rol = Rol.VECINO; // Rol por defecto si se registra un usuario nuevo
 
     @Column(nullable = false, unique = true)
     private String email;
