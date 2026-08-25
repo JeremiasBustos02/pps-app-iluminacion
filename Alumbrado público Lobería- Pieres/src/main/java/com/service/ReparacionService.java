@@ -25,16 +25,16 @@ public class ReparacionService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private MaterialRepository materialRepository;
-
-    @Autowired
-    private MovimientoStockRepository movimientoStockRepository;
-
-    @Autowired
-    private ReparacionMaterialRepository reparacionMaterialRepository;
-
-    @Autowired
     private ReparacionTecnicoRepository reparacionTecnicoRepository;
+
+    @Autowired
+    private ReparacionMaterialService reparacionMaterialService;
+
+    @Autowired
+    private ComponenteRepository componenteRepository;
+
+    @Autowired
+    private ReparacionComponenteRepository reparacionComponenteRepository;
 
     public List<Reparacion> findAll() {
         return reparacionRepository.findAll();
@@ -76,35 +76,31 @@ public class ReparacionService {
             }
         }
 
-        // 3. Registrar Materiales usados, descontar Stock y crear MovimientoStock
+        // 3. Registrar Materiales delegando en ReparacionMaterialService
         if (dto.getMaterialesUsados() != null && !dto.getMaterialesUsados().isEmpty()) {
             for (MaterialConsumidoDTO matDto : dto.getMaterialesUsados()) {
-                Material material = materialRepository.findById(matDto.getMaterialId())
-                        .orElseThrow(() -> new RuntimeException("Material no encontrado: " + matDto.getMaterialId()));
+                Material materialRef = new Material();
+                materialRef.setId(matDto.getMaterialId());
 
-                if (material.getCantidad() < matDto.getCantidad()) {
-                    throw new RuntimeException("Stock insuficiente para: " + material.getNombre());
-                }
-
-                // Descontar stock
-                material.setCantidad(material.getCantidad() - matDto.getCantidad());
-                materialRepository.save(material);
-
-                // Guardar relación ReparacionMaterial
                 ReparacionMaterial repMat = new ReparacionMaterial();
                 repMat.setReparacion(reparacionGuardada);
-                repMat.setMaterial(material);
+                repMat.setMaterial(materialRef);
                 repMat.setCantidad(matDto.getCantidad());
-                reparacionMaterialRepository.save(repMat);
 
-                // Guardar historial en MovimientoStock
-                MovimientoStock movimiento = new MovimientoStock();
-                movimiento.setReparacion(reparacionGuardada);
-                movimiento.setMaterial(material);
-                movimiento.setCantidad(matDto.getCantidad());
-                movimiento.setTipo("SALIDA");
-                movimiento.setFecha(LocalDateTime.now());
-                movimientoStockRepository.save(movimiento);
+                reparacionMaterialService.addMaterial(repMat);
+            }
+        }
+
+        // 4. Registrar Componentes dañados
+        if (dto.getComponentesDanadosIds() != null && !dto.getComponentesDanadosIds().isEmpty()) {
+            for (Long componenteId : dto.getComponentesDanadosIds()) {
+                Componente comp = componenteRepository.findByIdAndDeletedAtIsNull(componenteId)
+                        .orElseThrow(() -> new IllegalArgumentException("Componente no encontrado: " + componenteId));
+
+                ReparacionComponente repComp = new ReparacionComponente();
+                repComp.setReparacion(reparacionGuardada);
+                repComp.setComponente(comp);
+                reparacionComponenteRepository.save(repComp);
             }
         }
 

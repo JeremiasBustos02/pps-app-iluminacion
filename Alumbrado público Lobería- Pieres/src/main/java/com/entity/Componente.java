@@ -3,26 +3,22 @@ package com.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @Entity
-public class Reparacion {
+public class Componente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String observacion;
-    private LocalDateTime fecha = LocalDateTime.now();
+    @Column(nullable = false, unique = true)
+    private String nombre;
 
-    @ManyToOne
-    @JoinColumn(name = "reclamo_id")
-    private Reclamo reclamo;
+    private String descripcion;
 
-    @OneToMany(mappedBy = "reparacion", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReparacionComponente> componentesAveriados = new ArrayList<>();
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

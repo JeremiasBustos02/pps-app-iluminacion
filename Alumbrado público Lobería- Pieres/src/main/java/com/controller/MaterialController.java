@@ -39,8 +39,8 @@ public class MaterialController {
 
     @PatchMapping("/{id}/stock")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Material> updateStock(@PathVariable Long id, @RequestParam Integer cantidad) {
-        return ResponseEntity.ok(materialService.updateStock(id, cantidad));
+    public ResponseEntity<Material> updateStock(@PathVariable Long id, @RequestParam Integer cantidad, @RequestParam String tipo) {
+        return ResponseEntity.ok(materialService.updateStock(id, cantidad, tipo));
     }
 
     @DeleteMapping("/{id}")

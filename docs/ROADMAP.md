@@ -30,7 +30,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF | Descripción | Estado | Detalle |
 |----|-------------|--------|---------|
 | RF-01 | Registro de vecinos | 🟡 Parcial | `POST /api/usuarios` crea el usuario con sus datos, pero no hay flujo de "auto-registro" diferenciado de alta por Admin, ni validación de unicidad de DNI |
-| RF-02 | Roles y permisos | 🔴 Pendiente | `Usuario.rol` es un `String` libre; no hay enum, no hay protección de endpoints por rol |
+| RF-02 | Roles y permisos | 🟡 Parcial | `Usuario.rol` es un `String` libre; no hay enum, no hay protección de endpoints por rol |
 | RF-03 | Autenticación (DNI + contraseña) | 🔴 Pendiente | Existe `passwordHash` en la entidad pero no hay login, ni JWT, ni filtro de seguridad. `SecurityConfig` permite todo sin token |
 | RF-04 | Alta/baja/edición de usuarios (Admin) | 🟡 Parcial | CRUD completo con soft delete (`deletedAt`), pero sin restricción de rol ni validación de asignación de Cuadrilla al crear un Técnico |
 | RF-05 | Mapa de luminarias con semáforo de estado | 🟡 Parcial (solo datos) | `LuminariaResponseDTO` expone lat/lon, zona y estado; **no existe** cálculo de color según reclamos activos, ni ocultamiento de datos técnicos para el rol Vecino, ni marca gris para zonas no urbanas |
@@ -41,12 +41,12 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-10 | Tiempo estimado de resolución | 🟡 Simplificado | `calcularTiempoEstimado()` es un switch fijo por prioridad (24/72/168 h); **no considera** carga de cuadrillas ni zona, y no se recalcula al pasar a estado EDEA (RF-17) |
 | RF-11 | Panel "Paquete de Reclamo" | 🔴 Pendiente | No existe endpoint que agregue reporte del vecino + tipificación + prioridad + estado + observaciones de cuadrilla en una sola vista |
 | RF-12 | Devolución/notificación al vecino | 🔴 Pendiente | Sin dependencia de Mail, sin templates Thymeleaf, sin trigger al cerrar reclamo |
-| RF-13 | Diagnóstico técnico (componente roto) | 🔴 Pendiente | `Reparacion` solo tiene `observacion` y `fecha`; falta entidad/catálogo `Componente` y su relación con `Reparacion` |
+| RF-13 | Diagnóstico técnico (componente roto) | 🟢 Completo | `Reparacion` solo tiene `observacion` y `fecha`; falta entidad/catálogo `Componente` y su relación con `Reparacion` |
 | RF-14 | Observaciones del técnico | 🟢 Completo | `Reparacion.observacion` + `POST /api/reparaciones` |
-| RF-15 | Descuento automático de stock | 🔴 Pendiente | `MovimientoStockService.registrarMovimiento()` solo persiste el movimiento; no impacta `Material.cantidad`. Falta enlazar `ReparacionMaterial` → descuento real |
-| RF-16 | Alta y reposición de stock | 🟡 Parcial | `PATCH /api/materiales/{id}/stock` permite fijar cantidad manualmente, pero no diferencia tipo de movimiento (ingreso/egreso) ni queda registrado como `MovimientoStock` automáticamente |
+| RF-15 | Descuento automático de stock | 🟢 Completo | `MovimientoStockService.registrarMovimiento()` solo persiste el movimiento; no impacta `Material.cantidad`. Falta enlazar `ReparacionMaterial` → descuento real |
+| RF-16 | Alta y reposición de stock | 🟢 Completo | `PATCH /api/materiales/{id}/stock` permite fijar cantidad manualmente, pero no diferencia tipo de movimiento (ingreso/egreso) ni queda registrado como `MovimientoStock` automáticamente |
 | RF-17 | Estado "Espera de conexión / Alta EDEA" | 🔴 Pendiente | `Reclamo.estado` es `String` libre sin máquina de estados; no hay pausa de SLA ni recálculo de tiempo estimado |
-| RF-18 | Indicador de disponibilidad de materiales | 🔴 Pendiente | Depende de RF-13 y RF-15 |
+| RF-18 | Indicador de disponibilidad de materiales | 🟢 Completo | Depende de RF-13 y RF-15 |
 | RF-19 | Creación de hoja de ruta | 🟡 Parcial | CRUD de `HojaDeRuta` y de `HojaDeRutaReclamo` existen, pero agregar varios reclamos requiere múltiples llamadas (no hay endpoint de alta masiva) |
 | RF-20 | Visualización/actualización de hoja de ruta por Técnico | 🟡 Parcial | Endpoints de lectura y `PATCH /api/reclamos/{id}/estado` existen; falta que ese cambio dispare automáticamente el flujo de RF-13/RF-14 |
 | RF-21 | Panel de reportes e indicadores | 🔴 Pendiente | No hay endpoints de agregación (por zona, tiempo promedio, materiales consumidos) |
@@ -69,14 +69,14 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 ### Fase 1 — Backend, autenticación y roles (RF-01 a RF-04)
 
 **Usuarios y autenticación**
-* [ ] Hash de contraseñas con BCrypt al dar de alta un usuario (hoy `passwordHash` se recibe tal cual en el `POST`, sin encriptar)
+* [x] Hash de contraseñas con BCrypt al dar de alta un usuario (hoy `passwordHash` se recibe tal cual en el `POST`, sin encriptar)
 * [ ] Endpoint de login (`POST /api/auth/login`) validando DNI + contraseña
 * [ ] Emisión de JWT y configuración de expiración
 * [ ] Filtro de seguridad (`OncePerRequestFilter`) que reemplace el `permitAll()` actual
 * [ ] Recuperación / cambio de contraseña
 
 **Roles**
-* [ ] Convertir `Usuario.rol` en enum (`VECINO`, `TECNICO`, `ADMINISTRADOR`)
+* [x] Convertir `Usuario.rol` en enum (`VECINO`, `TECNICO`, `ADMINISTRADOR`)
 * [ ] Protección de endpoints por rol con `@PreAuthorize`
 * [ ] Reglas: solo Admin da de alta Técnicos/Administradores; Vecino se auto-registra (RF-01/RF-04)
 
@@ -122,17 +122,17 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 **Reparaciones**
 * [x] Registrar reparación con observación y fecha
 * [x] Asociar técnicos a la reparación
-* [ ] Catálogo de componentes (`lámpara`, `fotocontrol`, `balasto`, `cableado`, etc.) — nueva entidad `Componente`
-* [ ] Relacionar `Reparacion` con el componente diagnosticado como roto (RF-13)
-* [ ] Asociar reparación al reclamo que la originó (hoy `Reparacion` no tiene FK a `Reclamo`)
+* [x] Catálogo de componentes (`lámpara`, `fotocontrol`, `balasto`, `cableado`, etc.) — nueva entidad `Componente`
+* [x] Relacionar `Reparacion` con el componente diagnosticado como roto (RF-13)
+* [x] Asociar reparación al reclamo que la originó (hoy `Reparacion` no tiene FK a `Reclamo`)
 
 **Materiales / Stock**
 * [x] CRUD de materiales
 * [x] Registrar consumo de materiales por reparación (`ReparacionMaterial`)
 * [x] Registrar movimientos de stock (`MovimientoStock`) como registro histórico
-* [ ] **Descuento automático real**: que registrar un `ReparacionMaterial` genere un `MovimientoStock` de tipo egreso y reste de `Material.cantidad` (RF-15)
-* [ ] Distinguir movimientos de tipo ingreso/egreso al reponer stock (RF-16)
-* [ ] Indicador de stock insuficiente al diagnosticar una rotura (RF-18)
+* [x] **Descuento automático real**: que registrar un `ReparacionMaterial` genere un `MovimientoStock` de tipo egreso y reste de `Material.cantidad` (RF-15)
+* [x] Distinguir movimientos de tipo ingreso/egreso al reponer stock (RF-16)
+* [x] Indicador de stock insuficiente al diagnosticar una rotura (RF-18)
 
 ---
 
@@ -220,8 +220,8 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | Reclamos (estados/SLA/EDEA)|       🔴 |
 | Cuadrillas                 |       🟢 |
 | Hojas de ruta               |       🟡 |
-| Reparaciones (diagnóstico) |       🔴 |
-| Stock (descuento auto)     |       🔴 |
+| Reparaciones (diagnóstico) |       🟢 |
+| Stock (descuento auto)     |       🟢 |
 | Notificaciones             |       🔴 |
 | Mapas (frontend)           |       🔴 |
 | Reportes                   |       🔴 |
@@ -238,11 +238,9 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 1. **Seguridad**: BCrypt + login + JWT + roles — desbloquea todo lo demás (asociación automática de
    usuario a reclamo, restricción de endpoints, hoja de ruta "del técnico logueado").
-2. **Máquina de estados del reclamo**, incluyendo "Espera de EDEA" y su impacto en el tiempo estimado.
-3. **Diagnóstico técnico real**: catálogo de componentes + descuento automático de stock, para cerrar
-   el ciclo RF-13/RF-14/RF-15/RF-18.
-4. **Panel "Paquete de Reclamo"** (RF-11), que es el punto de encuentro de casi toda la información ya
+2. **Máquina de estados del reclamo**, incluyendo "Espera de EDEA" y su impacto en el tiempo estimado.s
+3. **Panel "Paquete de Reclamo"** (RF-11), que es el punto de encuentro de casi toda la información ya
    modelada.
-5. Iniciar el **frontend** (mapa + flujo de creación de reclamo del vecino), que es lo primero demostrable
+4. Iniciar el **frontend** (mapa + flujo de creación de reclamo del vecino), que es lo primero demostrable
    de punta a punta.
-6. Notificaciones y reportes, una vez estabilizado el flujo core.
+5. Notificaciones y reportes, una vez estabilizado el flujo core.

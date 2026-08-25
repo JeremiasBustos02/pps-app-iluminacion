@@ -1,36 +1,29 @@
 package com.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
+        import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class MovimientoStock {
+public class ReparacionComponente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "reparacion_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reparacion_id", nullable = false)
     private Reparacion reparacion;
 
-    @ManyToOne
-    @JoinColumn(name = "material_id", nullable = false)
-    private Material material;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "componente_id", nullable = false)
+    private Componente componente;
 
-    private String tipo;
-    private Integer cantidad;
-    private LocalDateTime fecha;
+    @Column(name = "estado_componente")
+    private String estadoComponente; // Ej: QUEMADO, ROTO, SULFATADO
+
+    private String observacion;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
