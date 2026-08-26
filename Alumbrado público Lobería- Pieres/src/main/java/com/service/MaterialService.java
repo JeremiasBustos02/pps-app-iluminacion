@@ -2,6 +2,7 @@ package com.service;
 
 import com.entity.Material;
 import com.entity.MovimientoStock;
+import com.enums.TipoMovimiento;
 import com.repository.MaterialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ public class MaterialService {
     }
 
     @Transactional
-    public Material updateStock(Long id, Integer cantidadMovimiento, String tipo) {
+    public Material updateStock(Long id, Integer cantidadMovimiento, TipoMovimiento tipo) {
         MovimientoStock movimiento = MovimientoStock.builder()
                 .material(Material.builder().id(id).build())
                 .cantidad(cantidadMovimiento)

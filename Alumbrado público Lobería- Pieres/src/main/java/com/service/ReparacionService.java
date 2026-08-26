@@ -1,5 +1,6 @@
 package com.service;
 
+import com.enums.EstadoReclamo;
 import com.dto.MaterialConsumidoDTO;
 import com.dto.ReparacionDTO;
 import com.entity.*;
@@ -55,7 +56,7 @@ public class ReparacionService {
             Reclamo reclamo = reclamoRepository.findById(dto.getReclamoId())
                     .orElseThrow(() -> new RuntimeException("Reclamo no encontrado: " + dto.getReclamoId()));
 
-            reclamo.setEstado("RESUELTO");
+            reclamo.setEstado(EstadoReclamo.RESUELTO);
             reclamoRepository.save(reclamo);
 
             reparacion.setReclamo(reclamo);

@@ -1,5 +1,6 @@
 package com.service;
 
+import com.enums.TipoMovimiento;
 import com.entity.Material;
 import com.entity.MovimientoStock;
 import com.repository.MaterialRepository;
@@ -37,7 +38,7 @@ public class MovimientoStockService {
         if (movimiento.getCantidad() == null || movimiento.getCantidad() <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
-        if (movimiento.getTipo() == null || (!movimiento.getTipo().equalsIgnoreCase("ingreso") && !movimiento.getTipo().equalsIgnoreCase("egreso"))) {
+        if (movimiento.getTipo() == null) {
             throw new IllegalArgumentException("Tipo de movimiento inválido. Debe ser 'ingreso' o 'egreso'");
         }
 
@@ -48,7 +49,7 @@ public class MovimientoStockService {
         int stockActual = mat.getCantidad() != null ? mat.getCantidad() : 0;
 
         // 3. Aplicar lógica según el tipo
-        if (movimiento.getTipo().equalsIgnoreCase("egreso")) {
+        if (movimiento.getTipo() == TipoMovimiento.EGRESO) {
             if (stockActual < movimiento.getCantidad()) {
                 throw new IllegalArgumentException("Cantidad insuficiente en stock. Stock disponible: " + stockActual);
             }

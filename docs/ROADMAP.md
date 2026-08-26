@@ -45,7 +45,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-14 | Observaciones del técnico | 🟢 Completo | `Reparacion.observacion` + `POST /api/reparaciones` |
 | RF-15 | Descuento automático de stock | 🟢 Completo | `MovimientoStockService.registrarMovimiento()` solo persiste el movimiento; no impacta `Material.cantidad`. Falta enlazar `ReparacionMaterial` → descuento real |
 | RF-16 | Alta y reposición de stock | 🟢 Completo | `PATCH /api/materiales/{id}/stock` permite fijar cantidad manualmente, pero no diferencia tipo de movimiento (ingreso/egreso) ni queda registrado como `MovimientoStock` automáticamente |
-| RF-17 | Estado "Espera de conexión / Alta EDEA" | 🔴 Pendiente | `Reclamo.estado` es `String` libre sin máquina de estados; no hay pausa de SLA ni recálculo de tiempo estimado |
+| RF-17 | Estado "Espera de conexión / Alta EDEA" | 🟡 Parcial | `Reclamo.estado` es `String` libre sin máquina de estados; no hay pausa de SLA ni recálculo de tiempo estimado |
 | RF-18 | Indicador de disponibilidad de materiales | 🟢 Completo | Depende de RF-13 y RF-15 |
 | RF-19 | Creación de hoja de ruta | 🟡 Parcial | CRUD de `HojaDeRuta` y de `HojaDeRutaReclamo` existen, pero agregar varios reclamos requiere múltiples llamadas (no hay endpoint de alta masiva) |
 | RF-20 | Visualización/actualización de hoja de ruta por Técnico | 🟡 Parcial | Endpoints de lectura y `PATCH /api/reclamos/{id}/estado` existen; falta que ese cambio dispare automáticamente el flujo de RF-13/RF-14 |
@@ -93,12 +93,12 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 * [ ] Asociar automáticamente el usuario autenticado al reclamo (sale del JWT, no del body — depende de Fase 1)
 * [ ] Consultar reclamos propios (Vecino) e impedir ver reclamos de terceros
 * [ ] Filtros: por estado, zona, prioridad
-* [ ] Definir máquina de estados de `Reclamo` (PENDIENTE → ASIGNADO → EN_REPARACION → ESPERA_EDEA → RESUELTO → CERRADO)
+* [x] Definir máquina de estados de `Reclamo` (PENDIENTE → ASIGNADO → EN_REPARACION → ESPERA_EDEA → RESUELTO → CERRADO)
 * [ ] Estado "Espera de conexión / Alta por EDEA": pausa de SLA + recálculo de tiempo estimado (RF-17)
 * [ ] Refinar `calcularTiempoEstimado()` para considerar carga de cuadrillas y zona, no solo prioridad
 * [ ] Endpoint "Paquete de Reclamo" (RF-11): reporte del vecino + tipificación + prioridad + estado + observaciones técnicas en una sola respuesta
 * [ ] Indicador de disponibilidad de materiales en el paquete de reclamo (RF-18), sin exponer stock al Vecino
-* [ ] Historial de estados del reclamo (tabla de auditoría o eventos)
+* [x] Historial de estados del reclamo (tabla de auditoría o eventos)
 * [ ] Notificación al vecino ante cada cambio relevante de estado
 
 ---
@@ -217,7 +217,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | Autenticación y roles      |       🔴 |
 | Usuarios (ABM)             |       🟡 |
 | Reclamos (creación)        |       🟢 |
-| Reclamos (estados/SLA/EDEA)|       🔴 |
+| Reclamos (estados/SLA/EDEA)|       🟡 |
 | Cuadrillas                 |       🟢 |
 | Hojas de ruta               |       🟡 |
 | Reparaciones (diagnóstico) |       🟢 |

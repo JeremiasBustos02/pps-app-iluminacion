@@ -1,6 +1,7 @@
 package com.dto;
 
 import com.entity.Reclamo;
+import com.enums.EstadoReclamo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 public class ReclamoResponseDTO {
     private Long id;
     private String numeroSeguimiento;
-    private String estado;
+    private EstadoReclamo estado;
     private LocalDateTime fecha;
     private Integer tiempoEstimado;
     private Long luminariaId;

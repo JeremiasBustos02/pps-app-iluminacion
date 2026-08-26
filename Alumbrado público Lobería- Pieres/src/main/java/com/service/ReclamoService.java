@@ -1,16 +1,12 @@
 package com.service;
 
 import com.dto.ReclamoDTO;
-import com.entity.Luminaria;
-import com.entity.Reclamo;
-import com.entity.TipoReclamo;
-import com.entity.Usuario;
-import com.repository.LuminariaRepository;
-import com.repository.ReclamoRepository;
-import com.repository.TipoReclamoRepository;
-import com.repository.UsuarioRepository;
+import com.entity.*;
+import com.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.enums.EstadoReclamo;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -31,6 +27,9 @@ public class ReclamoService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private ReclamoHistorialRepository reclamoHistorialRepository;
 
     public List<Reclamo> findAll() {
         return reclamoRepository.findAll();
@@ -78,17 +77,42 @@ public class ReclamoService {
         reclamo.setNumeroSeguimiento(String.format("REC-%s-%04d", anioActual, correlativo));
 
         // Valores por defecto
-        reclamo.setEstado("PENDIENTE");
+        reclamo.setEstado(EstadoReclamo.PENDIENTE);
         reclamo.setFecha(LocalDateTime.now());
 
         return reclamoRepository.save(reclamo);
     }
 
-    public Reclamo updateEstado(Long id, String nuevoEstado) {
+    @Transactional
+    public Reclamo updateEstado(Long id, EstadoReclamo nuevoEstado, String observacion) {
         Reclamo reclamo = findById(id)
                 .orElseThrow(() -> new RuntimeException("Reclamo no encontrado: " + id));
+
+        EstadoReclamo estadoAnterior = reclamo.getEstado();
+
+        if (estadoAnterior == nuevoEstado) {
+            return reclamo;
+        }
+
+        // RF-17 y RF-10 - Lógica de pausa de SLA
+        if (nuevoEstado == EstadoReclamo.ESPERA_EDEA) {
+            // Logica de espera EDEA
+        }
+
+        // 1. Actualizar el estado en el reclamo
         reclamo.setEstado(nuevoEstado);
-        return reclamoRepository.save(reclamo);
+        Reclamo reclamoGuardado = reclamoRepository.save(reclamo);
+
+        // 2. Crear y guardar el registro en el historial
+        ReclamoHistorial historial = new ReclamoHistorial();
+        historial.setReclamo(reclamoGuardado);
+        historial.setEstadoAnterior(estadoAnterior);
+        historial.setEstadoNuevo(nuevoEstado);
+        historial.setObservacion(observacion);
+
+        reclamoHistorialRepository.save(historial);
+
+        return reclamoGuardado;
     }
 
     public void delete(Long id) {

@@ -3,6 +3,7 @@ package com.controller;
 import com.dto.ReclamoDTO;
 import com.dto.ReclamoResponseDTO;
 import com.entity.Reclamo;
+import com.enums.EstadoReclamo;
 import com.service.ReclamoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -60,8 +61,8 @@ public class ReclamoController {
 
     @PatchMapping("/{id}/estado")
     @PreAuthorize("hasAnyRole('TECNICO', 'ADMINISTRADOR')")
-    public ResponseEntity<ReclamoResponseDTO> updateEstado(@PathVariable Long id, @RequestParam String estado) {
-        Reclamo actualizado = reclamoService.updateEstado(id, estado);
+    public ResponseEntity<ReclamoResponseDTO> updateEstado(@PathVariable Long id, @RequestParam EstadoReclamo estado, @RequestParam String observacion) {
+        Reclamo actualizado = reclamoService.updateEstado(id, estado, observacion);
         return ResponseEntity.ok(new ReclamoResponseDTO(actualizado));
     }
 

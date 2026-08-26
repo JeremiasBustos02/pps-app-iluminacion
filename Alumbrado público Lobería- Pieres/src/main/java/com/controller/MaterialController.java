@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.entity.Material;
+import com.enums.TipoMovimiento;
 import com.service.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,7 +40,7 @@ public class MaterialController {
 
     @PatchMapping("/{id}/stock")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Material> updateStock(@PathVariable Long id, @RequestParam Integer cantidad, @RequestParam String tipo) {
+    public ResponseEntity<Material> updateStock(@PathVariable Long id, @RequestParam Integer cantidad, @RequestParam TipoMovimiento tipo) {
         return ResponseEntity.ok(materialService.updateStock(id, cantidad, tipo));
     }
 

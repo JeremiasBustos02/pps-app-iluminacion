@@ -1,5 +1,6 @@
 package com.entity;
 
+import com.enums.TipoMovimiento;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,10 @@ public class MovimientoStock {
     @JoinColumn(name = "material_id", nullable = false)
     private Material material;
 
-    private String tipo;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoMovimiento tipo;
+
     private Integer cantidad;
     private LocalDateTime fecha;
 

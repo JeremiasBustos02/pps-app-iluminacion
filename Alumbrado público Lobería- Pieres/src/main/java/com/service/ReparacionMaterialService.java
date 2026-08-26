@@ -2,6 +2,7 @@ package com.service;
 
 import com.entity.MovimientoStock;
 import com.entity.ReparacionMaterial;
+import com.enums.TipoMovimiento;
 import com.repository.ReparacionMaterialRepository;
 import com.repository.ReparacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class ReparacionMaterialService {
         MovimientoStock movStock = MovimientoStock.builder()
                 .material(reparacionMaterial.getMaterial())
                 .reparacion(reparacionMaterial.getReparacion())
-                .tipo("egreso")
+                .tipo(TipoMovimiento.EGRESO)
                 .cantidad(reparacionMaterial.getCantidad())
                 .fecha(LocalDateTime.now())
                 .build();

@@ -3,6 +3,7 @@ package com.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import com.enums.EstadoReclamo;
 
 @Data
 @Entity
@@ -27,7 +28,10 @@ public class Reclamo {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoReclamo estado = EstadoReclamo.PENDIENTE;
+
     private LocalDateTime fecha;
 
     @Column(name = "tiempo_estimado")
