@@ -12,4 +12,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     List<Usuario> findByDeletedAtIsNull();
     Optional<Usuario> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<Usuario> findByDni(Long dni);
+    boolean existsByDni(Long dni);
 }

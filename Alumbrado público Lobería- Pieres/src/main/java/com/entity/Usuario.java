@@ -25,7 +25,9 @@ public class Usuario {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    private Long dni;
+    @Column(nullable = false, unique = true)
+    private Long dni; // Credencial de acceso (RF-03)
+
     private String celular;
     private String calle;
 

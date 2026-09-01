@@ -14,4 +14,7 @@ public class UsuarioDTO {
     private String calle;
     private Integer numeroCalle;
     private String referenciaDomicilio;
+
+    // Solo se usa cuando el rol es TECNICO: cuadrilla a la que se lo asigna (RF-04)
+    private Long cuadrillaId;
 }

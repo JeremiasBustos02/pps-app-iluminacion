@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@PreAuthorize("hasRole('ADMINISTRADOR')")
+@PreAuthorize("hasRole('ADMINISTRADOR')") // RF-04: alta/edición/baja de usuarios solo para el Administrador
 public class UsuarioController {
 
     @Autowired
@@ -23,7 +23,7 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> getAll() {
         List<UsuarioResponseDTO> usuarios = usuarioService.findAll().stream()
-                .map(UsuarioResponseDTO::new)
+                .map(usuarioService::toResponseDTO)
                 .toList();
         return ResponseEntity.ok(usuarios);
     }
@@ -31,20 +31,20 @@ public class UsuarioController {
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> getById(@PathVariable Long id) {
         return usuarioService.findById(id)
-                .map(u -> ResponseEntity.ok(new UsuarioResponseDTO(u)))
+                .map(u -> ResponseEntity.ok(usuarioService.toResponseDTO(u)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<UsuarioResponseDTO> create(@RequestBody UsuarioDTO dto) {
         Usuario creado = usuarioService.saveFromDTO(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new UsuarioResponseDTO(creado));
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.toResponseDTO(creado));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> update(@PathVariable Long id, @RequestBody UsuarioDTO dto) {
         Usuario actualizado = usuarioService.updateFromDTO(id, dto);
-        return ResponseEntity.ok(new UsuarioResponseDTO(actualizado));
+        return ResponseEntity.ok(usuarioService.toResponseDTO(actualizado));
     }
 
     @DeleteMapping("/{id}")
