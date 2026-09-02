@@ -75,5 +75,47 @@ GET http://localhost:8080/api/reclamos?tipoReclamoId=4
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4MzAzOTk5LCJleHAiOjE3ODgzOTAzOTl9.gbtM9zyyUd-TtU9mb16NnwMUq3rZhDbY-Iq8OgwAee4
 
 
+### Crear luminaria 1
+POST http://localhost:8080/api/luminarias
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4MzAzOTk5LCJleHAiOjE3ODgzOTAzOTl9.gbtM9zyyUd-TtU9mb16NnwMUq3rZhDbY-Iq8OgwAee4
+Content-Type: application/json
+
+{
+  "tipo": "LED",
+  "estado": "Funciona",
+  "potencia": "150W",
+  "zonaId": 1,
+  "latitud": -38.1667,
+  "longitud": -58.9667
+}
+
+### Crear luminaria 2
+POST http://localhost:8080/api/luminarias
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4MzAzOTk5LCJleHAiOjE3ODgzOTAzOTl9.gbtM9zyyUd-TtU9mb16NnwMUq3rZhDbY-Iq8OgwAee4
+Content-Type: application/json
+
+{
+  "tipo": "Sodio",
+  "estado": "Rota",
+  "potencia": "100W",
+  "zonaId": 2,
+  "latitud": -38.1700,
+  "longitud": -58.9700
+}
+
+
+### Todas
+GET http://localhost:8080/api/luminarias
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4MzAzOTk5LCJleHAiOjE3ODgzOTAzOTl9.gbtM9zyyUd-TtU9mb16NnwMUq3rZhDbY-Iq8OgwAee4
+
+### Solo las que funcionan
+GET http://localhost:8080/api/luminarias?estado=Funciona
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4MzAzOTk5LCJleHAiOjE3ODgzOTAzOTl9.gbtM9zyyUd-TtU9mb16NnwMUq3rZhDbY-Iq8OgwAee4
+### Solo zona 2
+GET http://localhost:8080/api/luminarias?zonaId=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4MzAzOTk5LCJleHAiOjE3ODgzOTAzOTl9.gbtM9zyyUd-TtU9mb16NnwMUq3rZhDbY-Iq8OgwAee4
+
+
+
 
 

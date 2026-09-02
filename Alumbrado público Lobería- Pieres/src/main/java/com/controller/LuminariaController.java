@@ -2,7 +2,9 @@ package com.controller;
 
 import com.dto.LuminariaDTO;
 import com.dto.LuminariaResponseDTO;
+import com.dto.ReclamoResponseDTO;
 import com.entity.Luminaria;
+import com.enums.EstadoReclamo;
 import com.service.LuminariaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,8 +22,10 @@ public class LuminariaController {
     private LuminariaService luminariaService;
 
     @GetMapping
-    public ResponseEntity<List<LuminariaResponseDTO>> getAll() {
-        List<LuminariaResponseDTO> list = luminariaService.findAll().stream()
+    public ResponseEntity<List<LuminariaResponseDTO>> getAll(
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Long zonaId) {
+        List<LuminariaResponseDTO> list = luminariaService.filtrar(estado, zonaId).stream()
                 .map(LuminariaResponseDTO::new)
                 .toList();
         return ResponseEntity.ok(list);

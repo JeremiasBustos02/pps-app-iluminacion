@@ -2,7 +2,9 @@ package com.service;
 
 import com.dto.LuminariaDTO;
 import com.entity.Luminaria;
+import com.entity.Reclamo;
 import com.entity.Zona;
+import com.enums.EstadoReclamo;
 import com.repository.LuminariaRepository;
 import com.repository.ZonaRepository;
 import org.locationtech.jts.geom.Coordinate;
@@ -79,5 +81,9 @@ public class LuminariaService {
         } else {
             luminaria.setCoordenadas(null);
         }
+    }
+
+    public List<Luminaria> filtrar(String estado, Long zonaId) {
+        return luminariaRepository.filtrar(estado, zonaId);
     }
 }

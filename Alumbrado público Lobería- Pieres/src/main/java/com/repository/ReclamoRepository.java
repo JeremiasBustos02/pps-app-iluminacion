@@ -25,4 +25,5 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, Long> {
     List<Reclamo> filtrar(@Param("estado") EstadoReclamo estado,
                           @Param("zonaId") Long zonaId,
                           @Param("tipoReclamoId") Long tipoReclamoId);
+
 }
