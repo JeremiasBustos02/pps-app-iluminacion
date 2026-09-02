@@ -14,11 +14,8 @@ El backend tiene resuelta la base de datos (PostGIS + Flyway), el modelo de domi
 entidades) y CRUDs funcionales para casi todos los recursos. Lo que falta para pasar de "prototipo
 funcional" a "sistema alineado con los RF" es, en este orden:
 
-1. **Seguridad real** (hoy `SecurityConfig` tiene `permitAll()` en todos los endpoints — no hay
-   autenticación ni autorización, pese a que `Usuario` ya tiene `passwordHash`).
-2. **Reglas de negocio** que hoy son solo estructura de datos sin lógica: descuento automático de
-   stock (RF-15), estado "espera de EDEA" con impacto en SLA (RF-17), catálogo de componentes
-   rotos (RF-13), indicador de disponibilidad de repuestos (RF-18).
+1. ~~**Seguridad real**~~ ✅ Implementado: JWT + `@PreAuthorize` + `GlobalExceptionHandler`. Login con DNI/contraseña, BCrypt, filtro de autenticación.
+2. **Reglas de negocio pendientes**: validación de transiciones de estado en reclamos, pausa de SLA en estado ESPERA_EDEA (RF-17), recálculo de tiempo estimado.
 3. **Notificaciones** (RF-12): no hay dependencia de mail ni templates todavía.
 4. **Frontend completo**: no iniciado.
 5. **Reportes** (RF-21): no hay endpoints de agregación.
@@ -29,10 +26,10 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 | RF | Descripción | Estado | Detalle |
 |----|-------------|--------|---------|
-| RF-01 | Registro de vecinos | 🟡 Parcial | `POST /api/usuarios` crea el usuario con sus datos, pero no hay flujo de "auto-registro" diferenciado de alta por Admin, ni validación de unicidad de DNI |
-| RF-02 | Roles y permisos | 🟡 Parcial | `Usuario.rol` es un `String` libre; no hay enum, no hay protección de endpoints por rol |
-| RF-03 | Autenticación (DNI + contraseña) | 🔴 Pendiente | Existe `passwordHash` en la entidad pero no hay login, ni JWT, ni filtro de seguridad. `SecurityConfig` permite todo sin token |
-| RF-04 | Alta/baja/edición de usuarios (Admin) | 🟡 Parcial | CRUD completo con soft delete (`deletedAt`), pero sin restricción de rol ni validación de asignación de Cuadrilla al crear un Técnico |
+| RF-01 | Registro de vecinos | 🟢 Completo | `POST /api/auth/registro` auto-registra vecinos (fuerza rol VECINO). Validación de unicidad de DNI y email. Contraseña hasheada con BCrypt |
+| RF-02 | Roles y permisos | 🟢 Completo | `Usuario.rol` es enum (`VECINO`, `TECNICO`, `ADMINISTRADOR`). Endpoints protegidos con `@PreAuthorize`. `GlobalExceptionHandler` traduce errores a 400/401/403 |
+| RF-03 | Autenticación (DNI + contraseña) | 🟢 Completo | Login con `POST /api/auth/login` (DNI + contraseña). JWT firmado con HS256, filtro `JwtAuthenticationFilter`, `SecurityConfig` protege todos los endpoints excepto `/api/auth/**`. DNI obligatorio y único (migración V8) |
+| RF-04 | Alta/baja/edición de usuarios (Admin) | 🟢 Completo | CRUD con soft delete, restringido a ADMINISTRADOR con `@PreAuthorize`. Validación de unicidad de DNI y email en alta y edición. Sincronización automática técnico–cuadrilla. `UsuarioResponseDTO` incluye cuadrilla asignada |
 | RF-05 | Mapa de luminarias con semáforo de estado | 🟡 Parcial (solo datos) | `LuminariaResponseDTO` expone lat/lon, zona y estado; **no existe** cálculo de color según reclamos activos, ni ocultamiento de datos técnicos para el rol Vecino, ni marca gris para zonas no urbanas |
 | RF-06 | Alta de nuevos puntos de luz | 🟢 Backend listo | `POST /api/luminarias` con `LuminariaDTO` (coordenadas, tipo, zona). Falta restricción a rol Admin |
 | RF-07 | Creación de reclamo por tipificación | 🟢 Completo | `ReclamoService.create()` + catálogo `tipo_reclamo` seedeado con las 7 opciones exigidas |
@@ -45,7 +42,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-14 | Observaciones del técnico | 🟢 Completo | `Reparacion.observacion` + `POST /api/reparaciones` |
 | RF-15 | Descuento automático de stock | 🟢 Completo | `MovimientoStockService.registrarMovimiento()` solo persiste el movimiento; no impacta `Material.cantidad`. Falta enlazar `ReparacionMaterial` → descuento real |
 | RF-16 | Alta y reposición de stock | 🟢 Completo | `PATCH /api/materiales/{id}/stock` permite fijar cantidad manualmente, pero no diferencia tipo de movimiento (ingreso/egreso) ni queda registrado como `MovimientoStock` automáticamente |
-| RF-17 | Estado "Espera de conexión / Alta EDEA" | 🟡 Parcial | `Reclamo.estado` es `String` libre sin máquina de estados; no hay pausa de SLA ni recálculo de tiempo estimado |
+| RF-17 | Estado "Espera de conexión / Alta EDEA" | 🟡 Parcial | `Reclamo.estado` es enum `EstadoReclamo` con historial de transiciones (`ReclamoHistorial`). Falta validación de transiciones válidas, pausa de SLA y recálculo de tiempo estimado al entrar/salir de ESPERA_EDEA |
 | RF-18 | Indicador de disponibilidad de materiales | 🟢 Completo | Depende de RF-13 y RF-15 |
 | RF-19 | Creación de hoja de ruta | 🟡 Parcial | CRUD de `HojaDeRuta` y de `HojaDeRutaReclamo` existen, pero agregar varios reclamos requiere múltiples llamadas (no hay endpoint de alta masiva) |
 | RF-20 | Visualización/actualización de hoja de ruta por Técnico | 🟡 Parcial | Endpoints de lectura y `PATCH /api/reclamos/{id}/estado` existen; falta que ese cambio dispare automáticamente el flujo de RF-13/RF-14 |
@@ -69,21 +66,21 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 ### Fase 1 — Backend, autenticación y roles (RF-01 a RF-04)
 
 **Usuarios y autenticación**
-* [x] Hash de contraseñas con BCrypt al dar de alta un usuario (hoy `passwordHash` se recibe tal cual en el `POST`, sin encriptar)
-* [ ] Endpoint de login (`POST /api/auth/login`) validando DNI + contraseña
-* [ ] Emisión de JWT y configuración de expiración
-* [ ] Filtro de seguridad (`OncePerRequestFilter`) que reemplace el `permitAll()` actual
+* [x] Hash de contraseñas con BCrypt al dar de alta un usuario
+* [x] Endpoint de login (`POST /api/auth/login`) validando DNI + contraseña
+* [x] Emisión de JWT con `JwtService` y configuración de expiración
+* [x] Filtro de seguridad (`JwtAuthenticationFilter` / `OncePerRequestFilter`) que protege todos los endpoints
 * [ ] Recuperación / cambio de contraseña
 
 **Roles**
 * [x] Convertir `Usuario.rol` en enum (`VECINO`, `TECNICO`, `ADMINISTRADOR`)
-* [ ] Protección de endpoints por rol con `@PreAuthorize`
-* [ ] Reglas: solo Admin da de alta Técnicos/Administradores; Vecino se auto-registra (RF-01/RF-04)
+* [x] Protección de endpoints por rol con `@PreAuthorize`
+* [x] Reglas: solo Admin da de alta Técnicos/Administradores; Vecino se auto-registra vía `/api/auth/registro` (RF-01/RF-04)
 
 **Administración de usuarios**
-* [ ] Validar unicidad de DNI (además del email ya validado)
-* [ ] Validar que solo usuarios `TECNICO` puedan asociarse a una `Cuadrilla` (ya listado en el roadmap original, sigue pendiente)
-* [ ] Evitar técnicos duplicados en una cuadrilla (`CuadrillaTecnicoService` ya valida esto — falta test/documentación)
+* [x] Validar unicidad de DNI (además del email ya validado). DNI obligatorio (`NOT NULL`) y único (migración V8)
+* [ ] Validar que solo usuarios `TECNICO` puedan asociarse a una `Cuadrilla`
+* [x] Evitar técnicos duplicados en una cuadrilla (`CuadrillaTecnicoService` valida duplicados)
 
 ---
 
@@ -92,8 +89,9 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 * [x] Crear reclamo, asociar luminaria/tipo, generar número de seguimiento y tiempo estimado
 * [ ] Asociar automáticamente el usuario autenticado al reclamo (sale del JWT, no del body — depende de Fase 1)
 * [ ] Consultar reclamos propios (Vecino) e impedir ver reclamos de terceros
-* [ ] Filtros: por estado, zona, prioridad
-* [x] Definir máquina de estados de `Reclamo` (PENDIENTE → ASIGNADO → EN_REPARACION → ESPERA_EDEA → RESUELTO → CERRADO)
+* [x] Filtros: por estado, zona y tipo de reclamo en `GET /api/reclamos` (query params opcionales combinables con `LEFT JOIN`)
+* [x] Definir máquina de estados de `Reclamo` con enum `EstadoReclamo` (PENDIENTE, ASIGNADO, ESPERA_EDEA, RESUELTO, CERRADO, RECHAZADO)
+* [ ] Validación de transiciones válidas entre estados (evitar transiciones incoherentes)
 * [ ] Estado "Espera de conexión / Alta por EDEA": pausa de SLA + recálculo de tiempo estimado (RF-17)
 * [ ] Refinar `calcularTiempoEstimado()` para considerar carga de cuadrillas y zona, no solo prioridad
 * [ ] Endpoint "Paquete de Reclamo" (RF-11): reporte del vecino + tipificación + prioridad + estado + observaciones técnicas en una sola respuesta
@@ -165,7 +163,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 * [ ] Marca gris para puntos fuera de Área Urbana (Napaleufú, Paraje Dos Naciones)
 * [ ] Detalle por clic con datos técnicos (LED/Halógeno) visible solo para Técnico/Admin
 * [ ] Alta de luminaria haciendo clic en el mapa (RF-06)
-* [ ] Filtrar luminarias por zona (backend ya soporta `GET /api/luminarias/zona/{id}`)
+* [x] Filtrar luminarias por zona y estado con query params en `GET /api/luminarias` (backend ya soporta filtros combinados)
 * [ ] Optimizar consultas espaciales con índices GIST (ya existe `idx_luminaria_coordenadas`)
 
 ---
@@ -191,7 +189,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 ### Fase 9 — Testing y calidad
 
-* [ ] Tests unitarios de Services
+* [x] Tests unitarios de Services (`UsuarioServiceTest`, `JwtServiceTest`, `CustomUserDetailsServiceTest`, `AuthControllerTest`)
 * [ ] Tests de Controllers (incluyendo autorización por rol)
 * [ ] Tests de integración (Reclamo → Reparación → Stock end-to-end)
 * [ ] Documentación con Swagger/OpenAPI
@@ -214,9 +212,10 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | Área                      | Progreso |
 | -------------------------- | -------: |
 | Infraestructura / Datos    |       🟢 |
-| Autenticación y roles      |       🔴 |
-| Usuarios (ABM)             |       🟡 |
+| Autenticación y roles      |       🟢 |
+| Usuarios (ABM)             |       🟢 |
 | Reclamos (creación)        |       🟢 |
+| Reclamos (filtros)         |       🟢 |
 | Reclamos (estados/SLA/EDEA)|       🟡 |
 | Cuadrillas                 |       🟢 |
 | Hojas de ruta               |       🟡 |
@@ -226,7 +225,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | Mapas (frontend)           |       🔴 |
 | Reportes                   |       🔴 |
 | Frontend general           |       🔴 |
-| Testing                    |       🔴 |
+| Testing                    |       🟡 |
 | Deploy                     |       🔴 |
 
 ### Referencia
@@ -236,11 +235,8 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 ## 🚀 Próximos objetivos priorizados
 
-1. **Seguridad**: BCrypt + login + JWT + roles — desbloquea todo lo demás (asociación automática de
-   usuario a reclamo, restricción de endpoints, hoja de ruta "del técnico logueado").
-2. **Máquina de estados del reclamo**, incluyendo "Espera de EDEA" y su impacto en el tiempo estimado.s
-3. **Panel "Paquete de Reclamo"** (RF-11), que es el punto de encuentro de casi toda la información ya
-   modelada.
-4. Iniciar el **frontend** (mapa + flujo de creación de reclamo del vecino), que es lo primero demostrable
-   de punta a punta.
+1. ~~**Seguridad**~~ ✅ Completado.
+2. **Validación de transiciones de estado** del reclamo y lógica de pausa de SLA para ESPERA_EDEA (RF-17).
+3. **Panel "Paquete de Reclamo"** (RF-11), que es el punto de encuentro de casi toda la información ya modelada.
+4. Iniciar el **frontend** (mapa + flujo de creación de reclamo del vecino), que es lo primero demostrable de punta a punta.
 5. Notificaciones y reportes, una vez estabilizado el flujo core.
