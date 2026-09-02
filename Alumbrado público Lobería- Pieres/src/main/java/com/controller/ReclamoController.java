@@ -22,8 +22,11 @@ public class ReclamoController {
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'TECNICO')")
     @GetMapping
-    public ResponseEntity<List<ReclamoResponseDTO>> getAll() {
-        List<ReclamoResponseDTO> list = reclamoService.findAll().stream()
+    public ResponseEntity<List<ReclamoResponseDTO>> getAll(
+            @RequestParam(required = false) EstadoReclamo estado,
+            @RequestParam(required = false) Long zonaId,
+            @RequestParam(required = false) Long tipoReclamoId) {
+        List<ReclamoResponseDTO> list = reclamoService.filtrar(estado, zonaId, tipoReclamoId).stream()
                 .map(ReclamoResponseDTO::new)
                 .toList();
         return ResponseEntity.ok(list);

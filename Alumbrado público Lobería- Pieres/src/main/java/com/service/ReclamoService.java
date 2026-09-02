@@ -115,6 +115,10 @@ public class ReclamoService {
         return reclamoGuardado;
     }
 
+    public List<Reclamo> filtrar(EstadoReclamo estado, Long zonaId, Long tipoReclamoId) {
+        return reclamoRepository.filtrar(estado, zonaId, tipoReclamoId);
+    }
+
     public void delete(Long id) {
         reclamoRepository.deleteById(id);
     }
