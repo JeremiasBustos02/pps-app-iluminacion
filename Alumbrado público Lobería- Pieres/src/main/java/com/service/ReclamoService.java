@@ -94,6 +94,11 @@ public class ReclamoService {
             return reclamo;
         }
 
+        if (!estadoAnterior.puedeTransicionarA(nuevoEstado)) {
+            throw new RuntimeException(
+                    "No se puede pasar de " + estadoAnterior + " a " + nuevoEstado);
+        }
+
         // RF-17 y RF-10 - Lógica de pausa de SLA
         if (nuevoEstado == EstadoReclamo.ESPERA_EDEA) {
             // Logica de espera EDEA

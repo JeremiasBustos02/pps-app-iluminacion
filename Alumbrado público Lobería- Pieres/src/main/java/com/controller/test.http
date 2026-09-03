@@ -115,6 +115,53 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFET
 GET http://localhost:8080/api/luminarias?zonaId=2
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4MzAzOTk5LCJleHAiOjE3ODgzOTAzOTl9.gbtM9zyyUd-TtU9mb16NnwMUq3rZhDbY-Iq8OgwAee4
 
+###
+GET http://localhost:8080/api/zonas
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4NDc1Mzg4LCJleHAiOjE3ODg1NjE3ODh9.8yTEByvBAjaMHVoDcVgxtB3VWQLRK8Qw_ig91HD9Ujk
+
+### Verificar que el backend anda
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "dni": 12345678,
+  "password": "123456"
+}
+
+
+### Crear reclamo
+POST http://localhost:8080/api/reclamos
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4NDc1Mzg4LCJleHAiOjE3ODg1NjE3ODh9.8yTEByvBAjaMHVoDcVgxtB3VWQLRK8Qw_ig91HD9Ujk
+Content-Type: application/json
+
+{
+  "tipoReclamoId": 1,
+  "usuarioId": 1
+}
+
+
+### Transición válida: PENDIENTE → ASIGNADO
+PATCH http://localhost:8080/api/reclamos/5/estado
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4NDc1Mzg4LCJleHAiOjE3ODg1NjE3ODh9.8yTEByvBAjaMHVoDcVgxtB3VWQLRK8Qw_ig91HD9Ujk
+Content-Type: application/json
+
+{
+  "estado": "ASIGNADO",
+  "observacion": "Asignado a cuadrilla zona norte"
+}
+
+### Transición válida: PENDIENTE → ASIGNADO
+PATCH http://localhost:8080/api/reclamos/5/estado?estado=ASIGNADO&observacion=Asignado a cuadrilla zona norte
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4NDc1Mzg4LCJleHAiOjE3ODg1NjE3ODh9.8yTEByvBAjaMHVoDcVgxtB3VWQLRK8Qw_ig91HD9Ujk
+
+
+### Transición inválida: ASIGNADO → CERRADO (no debería permitirlo)
+PATCH http://localhost:8080/api/reclamos/5/estado?estado=CERRADO&observacion=Intentando cerrar
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4NDc1Mzg4LCJleHAiOjE3ODg1NjE3ODh9.8yTEByvBAjaMHVoDcVgxtB3VWQLRK8Qw_ig91HD9Ujk
+
+
+
+
 
 
 
