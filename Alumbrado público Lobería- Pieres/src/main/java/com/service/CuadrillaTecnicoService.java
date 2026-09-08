@@ -4,11 +4,13 @@ import com.dto.CuadrillaTecnicoRequest;
 import com.entity.Cuadrilla;
 import com.entity.CuadrillaTecnico;
 import com.entity.Usuario;
+import com.enums.Rol;
 import com.repository.CuadrillaRepository;
 import com.repository.CuadrillaTecnicoRepository;
 import com.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.enums.Rol;
 
 import java.util.List;
 
@@ -33,7 +35,9 @@ public class CuadrillaTecnicoService {
         Usuario tecnico = usuarioRepository.findById(cuadrillaTecnico.getTecnicoId())
                 .orElseThrow(() -> new RuntimeException(
                         "Tecnico no encontrado: " + cuadrillaTecnico.getTecnicoId()));
-
+        if (tecnico.getRol() != Rol.TECNICO){
+            throw new RuntimeException("Debe asignarse un técnico para la reparación");
+        }
         if (cuadrillaTecnicoRepository
                 .findByCuadrillaIdAndUsuarioId(
                         cuadrillaTecnico.getCuadrillaId(),

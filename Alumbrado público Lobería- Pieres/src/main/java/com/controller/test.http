@@ -161,8 +161,27 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFET
 
 
 
+### Ver cuadrillas
+GET http://localhost:8080/api/cuadrillas
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4OTA0Nzg1LCJleHAiOjE3ODg5OTExODV9.ODoosevqi4v2dVQ428RktE2SQccA0d8oD84BxmRSmMY
 
+### Crear cuadrilla
+POST http://localhost:8080/api/cuadrillas
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4OTA0Nzg1LCJleHAiOjE3ODg5OTExODV9.ODoosevqi4v2dVQ428RktE2SQccA0d8oD84BxmRSmMY
+Content-Type: application/json
 
+{
+  "nombre": "Cuadrilla Norte"
+}
 
+### Asignar admin a cuadrilla (debería fallar)
+POST http://localhost:8080/api/cuadrilla-tecnicos
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4OTA0Nzg1LCJleHAiOjE3ODg5OTExODV9.ODoosevqi4v2dVQ428RktE2SQccA0d8oD84BxmRSmMY
+Content-Type: application/json
+
+{
+  "cuadrillaId": 1,
+  "tecnicoId": 1
+}
 
 
