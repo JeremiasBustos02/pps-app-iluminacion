@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.dto.ReclamoDTO;
+import com.dto.ReclamoPaqueteDTO;
 import com.dto.ReclamoResponseDTO;
 import com.entity.Reclamo;
 import com.enums.EstadoReclamo;
@@ -37,6 +38,12 @@ public class ReclamoController {
         return reclamoService.findById(id)
                 .map(r -> ResponseEntity.ok(new ReclamoResponseDTO(r)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'TECNICO')")
+    @GetMapping("/{id}/paquete")
+    public ResponseEntity<ReclamoPaqueteDTO> getPaquete(@PathVariable Long id) {
+        return ResponseEntity.ok(reclamoService.getPaquete(id));
     }
 
     @GetMapping("/seguimiento/{numeroSeguimiento}")

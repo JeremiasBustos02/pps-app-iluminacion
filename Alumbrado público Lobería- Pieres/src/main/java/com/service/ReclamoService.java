@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.enums.EstadoReclamo;
 import org.springframework.transaction.annotation.Transactional;
+import com.dto.ReclamoPaqueteDTO;
+import com.entity.ReclamoHistorial;
 
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -122,6 +124,70 @@ public class ReclamoService {
 
     public List<Reclamo> filtrar(EstadoReclamo estado, Long zonaId, Long tipoReclamoId) {
         return reclamoRepository.filtrar(estado, zonaId, tipoReclamoId);
+    }
+
+    public ReclamoPaqueteDTO getPaquete(Long id) {
+        // 1. Buscar el reclamo
+        Reclamo reclamo = reclamoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reclamo no encontrado: " + id));
+
+        // 2. Buscar el historial
+        List<ReclamoHistorial> historial = reclamoHistorialRepository
+                .findByReclamoIdOrderByFechaCambioDesc(id);
+
+        // 3. Crear el DTO y setear datos del reclamo
+        ReclamoPaqueteDTO dto = new ReclamoPaqueteDTO();
+        dto.setId(reclamo.getId());
+        dto.setNumeroSeguimiento(reclamo.getNumeroSeguimiento());
+        dto.setEstado(reclamo.getEstado());
+        dto.setFecha(reclamo.getFecha());
+        dto.setTiempoEstimado(reclamo.getTiempoEstimado());
+
+        // 4. Bloque tipo de reclamo
+        if (reclamo.getTipoReclamo() != null) {
+            ReclamoPaqueteDTO.TipoReclamoInfo tr = new ReclamoPaqueteDTO.TipoReclamoInfo();
+            tr.setId(reclamo.getTipoReclamo().getId());
+            tr.setNombre(reclamo.getTipoReclamo().getNombre());
+            tr.setPrioridad(reclamo.getTipoReclamo().getPrioridad());
+            dto.setTipoReclamo(tr);
+        }
+
+        // 5. Bloque vecino
+        if (reclamo.getUsuario() != null) {
+            ReclamoPaqueteDTO.VecinoInfo v = new ReclamoPaqueteDTO.VecinoInfo();
+            v.setId(reclamo.getUsuario().getId());
+            v.setNombre(reclamo.getUsuario().getNombre());
+            v.setDni(reclamo.getUsuario().getDni());
+            v.setEmail(reclamo.getUsuario().getEmail());
+            dto.setVecino(v);
+        }
+
+        // 6. Bloque luminaria
+        if (reclamo.getLuminaria() != null) {
+            ReclamoPaqueteDTO.LuminariaInfo l = new ReclamoPaqueteDTO.LuminariaInfo();
+            l.setId(reclamo.getLuminaria().getId());
+            l.setTipo(reclamo.getLuminaria().getTipo());
+            l.setEstado(reclamo.getLuminaria().getEstado());
+            if (reclamo.getLuminaria().getZona() != null) {
+                l.setZona(reclamo.getLuminaria().getZona().getNombre());
+            }
+            dto.setLuminaria(l);
+        }
+
+        // 7. Bloque historial
+        List<ReclamoPaqueteDTO.HistorialInfo> historialDTO = historial.stream()
+                .map(h -> {
+                    ReclamoPaqueteDTO.HistorialInfo hi = new ReclamoPaqueteDTO.HistorialInfo();
+                    hi.setEstadoAnterior(h.getEstadoAnterior());
+                    hi.setEstadoNuevo(h.getEstadoNuevo());
+                    hi.setObservacion(h.getObservacion());
+                    hi.setFechaCambio(h.getFechaCambio());
+                    return hi;
+                })
+                .toList();
+        dto.setHistorial(historialDTO);
+
+        return dto;
     }
 
     public void delete(Long id) {

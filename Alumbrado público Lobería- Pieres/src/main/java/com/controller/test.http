@@ -185,3 +185,16 @@ Content-Type: application/json
 }
 
 
+### Paquete de reclamo
+GET http://localhost:8080/api/reclamos/5/paquete
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg4OTc5MzUwLCJleHAiOjE3ODkwNjU3NTB9.IxGjU7SDiy0MLWdMFWYAqHaDH0ikbZZRslCSKHtpcro
+
+
+
+
+
+
+
+
+
+
