@@ -191,6 +191,31 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFET
 
 
 
+### Inicio de sesion
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "dni": 12345678,
+  "password": "123456"
+}
+
+
+### Ver luminarias
+GET http://localhost:8080/api/luminarias
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg5MDczMzcxLCJleHAiOjE3ODkxNTk3NzF9.KyP5E3FsixhfBoMWng1rsxLfKG2zLae2rlUiURC8rew
+
+
+### Luminarias de Zona Sur
+GET http://localhost:8080/api/luminarias?zonaId=6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg5MDczMzcxLCJleHAiOjE3ODkxNTk3NzF9.KyP5E3FsixhfBoMWng1rsxLfKG2zLae2rlUiURC8rew
+
+
+
+### Luminarias LED
+GET http://localhost:8080/api/luminarias?estado=Funciona
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg5MDczMzcxLCJleHAiOjE3ODkxNTk3NzF9.KyP5E3FsixhfBoMWng1rsxLfKG2zLae2rlUiURC8rew
+
 
 
 
