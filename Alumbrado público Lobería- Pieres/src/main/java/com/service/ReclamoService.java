@@ -50,21 +50,26 @@ public class ReclamoService {
     }
 
     public Reclamo saveFromDTO(ReclamoDTO dto) {
+        // RF-07: el reclamo se genera seleccionando un punto en el mapa (luminaria)
+        // y tipificando el problema a partir del catálogo predefinido; ambos son obligatorios.
+        if (dto.getLuminariaId() == null) {
+            throw new RuntimeException("Debe seleccionar una luminaria en el mapa");
+        }
+        if (dto.getTipoReclamoId() == null) {
+            throw new RuntimeException("Debe seleccionar un tipo de problema");
+        }
+
         Reclamo reclamo = new Reclamo();
 
-        // 1. Asignar Luminaria
-        if (dto.getLuminariaId() != null) {
-            Luminaria luminaria = luminariaRepository.findById(dto.getLuminariaId())
-                    .orElseThrow(() -> new RuntimeException("Luminaria no encontrada: " + dto.getLuminariaId()));
-            reclamo.setLuminaria(luminaria);
-        }
+        // 1. Asignar Luminaria (punto seleccionado en el mapa)
+        Luminaria luminaria = luminariaRepository.findById(dto.getLuminariaId())
+                .orElseThrow(() -> new RuntimeException("Luminaria no encontrada: " + dto.getLuminariaId()));
+        reclamo.setLuminaria(luminaria);
 
-        // 2. Asignar TipoReclamo
-        if (dto.getTipoReclamoId() != null) {
-            TipoReclamo tipoReclamo = tipoReclamoRepository.findById(dto.getTipoReclamoId())
-                    .orElseThrow(() -> new RuntimeException("Tipo de reclamo no encontrado: " + dto.getTipoReclamoId()));
-            reclamo.setTipoReclamo(tipoReclamo);
-        }
+        // 2. Asignar TipoReclamo (tipificación del catálogo predefinido)
+        TipoReclamo tipoReclamo = tipoReclamoRepository.findById(dto.getTipoReclamoId())
+                .orElseThrow(() -> new RuntimeException("Tipo de reclamo no encontrado: " + dto.getTipoReclamoId()));
+        reclamo.setTipoReclamo(tipoReclamo);
 
         // 3. Asignar Usuario
         if (dto.getUsuarioId() != null) {
@@ -73,10 +78,12 @@ public class ReclamoService {
             reclamo.setUsuario(usuario);
         }
 
-        // Generar número de seguimiento formato REC-YYYY-[timestamp]
+        // RF-08: número de seguimiento único, formato REC-YYYY-NNNNN.
+        // El correlativo sale de la secuencia de la base (reclamo_numero_seq), no del reloj:
+        // así se garantiza unicidad real incluso con altas concurrentes.
         String anioActual = String.valueOf(Year.now().getValue());
-        long correlativo = System.currentTimeMillis() % 10000;
-        reclamo.setNumeroSeguimiento(String.format("REC-%s-%04d", anioActual, correlativo));
+        Long correlativo = reclamoRepository.siguienteNumeroSeguimiento();
+        reclamo.setNumeroSeguimiento(String.format("REC-%s-%05d", anioActual, correlativo));
 
         // Valores por defecto
         reclamo.setEstado(EstadoReclamo.PENDIENTE);

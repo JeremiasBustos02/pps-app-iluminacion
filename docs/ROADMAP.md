@@ -32,7 +32,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-04 | Alta/baja/edición de usuarios (Admin) | 🟢 Completo | CRUD con soft delete, restringido a ADMINISTRADOR con `@PreAuthorize`. Validación de unicidad de DNI y email. Validación de rol TECNICO al asignar a cuadrilla |
 | RF-05 | Mapa de luminarias con semáforo de estado | 🟡 Parcial (solo datos) | `LuminariaResponseDTO` expone lat/lon, zona y estado; **no existe** cálculo de color según reclamos activos, ni ocultamiento de datos técnicos para el rol Vecino, ni marca gris para zonas no urbanas |
 | RF-06 | Alta de nuevos puntos de luz | 🟢 Backend listo | `POST /api/luminarias` con `LuminariaDTO` (coordenadas, tipo, zona). Falta restricción a rol Admin |
-| RF-07 | Creación de reclamo por tipificación | 🟢 Completo | `ReclamoService.create()` + catálogo `tipo_reclamo` seedeado con las 7 opciones exigidas |
+| RF-07 | Creación de reclamo por tipificación | 🟢 Completo | `ReclamoService.saveFromDTO()` exige luminaria (punto en el mapa) y tipo de reclamo del catálogo `tipo_reclamo` (7 opciones exigidas); el usuario se toma del JWT, no del body |
 | RF-08 | Número de seguimiento único | 🟢 Completo | Secuencia `reclamo_numero_seq` + formato `REC-YYYY-NNNNN`, búsqueda por `GET /api/reclamos/seguimiento/{n}` |
 | RF-09 | Prioridad automática por tipo | 🟢 Completo (dato) | `TipoReclamo.prioridad` seedeado; falta que el color del mapa (RF-05) y el orden de cola de trabajo lo usen |
 | RF-10 | Tiempo estimado de resolución | 🟡 Simplificado | `calcularTiempoEstimado()` es un switch fijo por prioridad (24/72/168 h); **no considera** carga de cuadrillas ni zona, y no se recalcula al pasar a estado EDEA (RF-17) |
@@ -87,7 +87,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 ### Fase 2 — Reclamos (RF-07 a RF-11, RF-17, RF-18)
 
 * [x] Crear reclamo, asociar luminaria/tipo, generar número de seguimiento y tiempo estimado
-* [ ] Asociar automáticamente el usuario autenticado al reclamo (sale del JWT, no del body — depende de Fase 1)
+* [x] Asociar automáticamente el usuario autenticado al reclamo (sale del JWT, no del body)
 * [ ] Consultar reclamos propios (Vecino) e impedir ver reclamos de terceros
 * [x] Filtros: por estado, zona y tipo de reclamo en `GET /api/reclamos` (query params opcionales combinables con `LEFT JOIN`)
 * [x] Definir máquina de estados de `Reclamo` con enum `EstadoReclamo` y validación de transiciones

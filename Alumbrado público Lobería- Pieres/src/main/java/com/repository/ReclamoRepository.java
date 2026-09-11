@@ -26,4 +26,8 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, Long> {
                           @Param("zonaId") Long zonaId,
                           @Param("tipoReclamoId") Long tipoReclamoId);
 
+    // RF-08: correlativo real e incremental para el numeroSeguimiento (secuencia de la V3, antes sin usar)
+    @Query(value = "SELECT nextval('reclamo_numero_seq')", nativeQuery = true)
+    Long siguienteNumeroSeguimiento();
+
 }

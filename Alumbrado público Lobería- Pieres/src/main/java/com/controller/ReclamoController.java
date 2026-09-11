@@ -4,12 +4,15 @@ import com.dto.ReclamoDTO;
 import com.dto.ReclamoPaqueteDTO;
 import com.dto.ReclamoResponseDTO;
 import com.entity.Reclamo;
+import com.entity.Usuario;
 import com.enums.EstadoReclamo;
 import com.service.ReclamoService;
+import com.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +23,9 @@ public class ReclamoController {
 
     @Autowired
     private ReclamoService reclamoService;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'TECNICO')")
     @GetMapping
@@ -65,6 +71,13 @@ public class ReclamoController {
     @PostMapping
     @PreAuthorize("hasAnyRole('VECINO', 'ADMINISTRADOR')")
     public ResponseEntity<ReclamoResponseDTO> create(@RequestBody ReclamoDTO dto) {
+        // El reclamo queda asociado a quien está autenticado (el "username" es el DNI, RF-03),
+        // nunca al usuarioId que venga en el body: evita que un vecino genere reclamos a nombre de otro.
+        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuarioAutenticado = usuarioService.findByDni(Long.valueOf(dni))
+                .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
+        dto.setUsuarioId(usuarioAutenticado.getId());
+
         Reclamo nuevoReclamo = reclamoService.saveFromDTO(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ReclamoResponseDTO(nuevoReclamo));
     }
