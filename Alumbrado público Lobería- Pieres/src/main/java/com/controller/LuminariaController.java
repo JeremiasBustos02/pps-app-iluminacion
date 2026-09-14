@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.dto.LuminariaDTO;
+import com.dto.LuminariaHistorialDTO;
 import com.dto.LuminariaResponseDTO;
 import com.dto.ReclamoResponseDTO;
 import com.entity.Luminaria;
@@ -37,6 +38,12 @@ public class LuminariaController {
                 .map(LuminariaResponseDTO::new)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/historial")
+    @PreAuthorize("hasAnyRole('TECNICO', 'ADMINISTRADOR')")
+    public ResponseEntity<LuminariaHistorialDTO> getHistorial(@PathVariable Long id) {
+        return ResponseEntity.ok(luminariaService.getHistorial(id));
     }
 
     @GetMapping("/zona/{zonaId}")

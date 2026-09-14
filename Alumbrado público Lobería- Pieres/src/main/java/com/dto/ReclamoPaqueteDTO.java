@@ -21,6 +21,7 @@ public class ReclamoPaqueteDTO {
     private VecinoInfo vecino;
     private LuminariaInfo luminaria;
     private List<HistorialInfo> historial;
+    private List<ReparacionResumenDTO> observacionesCuadrilla;
 
     // --- DTOs internos ---
 

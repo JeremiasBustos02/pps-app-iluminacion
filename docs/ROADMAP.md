@@ -36,10 +36,10 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-08 | Número de seguimiento único | 🟢 Completo | Secuencia `reclamo_numero_seq` + formato `REC-YYYY-NNNNN`, búsqueda por `GET /api/reclamos/seguimiento/{n}` |
 | RF-09 | Prioridad automática por tipo | 🟢 Completo (dato) | `TipoReclamo.prioridad` seedeado; falta que el color del mapa (RF-05) y el orden de cola de trabajo lo usen |
 | RF-10 | Tiempo estimado de resolución | 🟡 Simplificado | `calcularTiempoEstimado()` es un switch fijo por prioridad (24/72/168 h); **no considera** carga de cuadrillas ni zona, y no se recalcula al pasar a estado EDEA (RF-17) |
-| RF-11 | Panel "Paquete de Reclamo" | 🟢 Completo | `GET /api/reclamos/{id}/paquete` devuelve datos del reclamo + vecino (nombre, DNI, email) + tipo con prioridad + luminaria + historial de estados en una sola respuesta (`ReclamoPaqueteDTO`) |
+| RF-11 | Panel "Paquete de Reclamo" | 🟢 Completo | `GET /api/reclamos/{id}/paquete` (solo TECNICO/ADMINISTRADOR) devuelve reporte del vecino (nombre, DNI, email) + tipificación con prioridad + estado + historial de estados + observaciones de la cuadrilla (RF-14: reparaciones asociadas con técnicos y componentes averiados) en una sola respuesta (`ReclamoPaqueteDTO`) |
 | RF-12 | Devolución/notificación al vecino | 🔴 Pendiente | Sin dependencia de Mail, sin templates Thymeleaf, sin trigger al cerrar reclamo |
 | RF-13 | Diagnóstico técnico (componente roto) | 🟢 Completo | `Reparacion` solo tiene `observacion` y `fecha`; falta entidad/catálogo `Componente` y su relación con `Reparacion` |
-| RF-14 | Observaciones del técnico | 🟢 Completo | `Reparacion.observacion` + `POST /api/reparaciones` |
+| RF-14 | Observaciones del técnico | 🟢 Completo | `POST /api/reparaciones` carga `Reparacion.observacion` (texto libre) al registrar la reparación, marca el reclamo como RESUELTO y queda asociada al reclamo; `GET /api/luminarias/{id}/historial` (TECNICO/ADMINISTRADOR) expone ese historial de observaciones agrupado por punto de luz, a través de todos sus reclamos, como respaldo de auditoría |
 | RF-15 | Descuento automático de stock | 🟢 Completo | `MovimientoStockService.registrarMovimiento()` solo persiste el movimiento; no impacta `Material.cantidad`. Falta enlazar `ReparacionMaterial` → descuento real |
 | RF-16 | Alta y reposición de stock | 🟢 Completo | `PATCH /api/materiales/{id}/stock` permite fijar cantidad manualmente, pero no diferencia tipo de movimiento (ingreso/egreso) ni queda registrado como `MovimientoStock` automáticamente |
 | RF-17 | Estado "Espera de conexión / Alta EDEA" | 🟡 Parcial | `Reclamo.estado` es enum `EstadoReclamo` con validación de transiciones y historial (`ReclamoHistorial`). Falta pausa de SLA y recálculo de tiempo estimado al entrar/salir de ESPERA_EDEA |
@@ -93,7 +93,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 * [x] Definir máquina de estados de `Reclamo` con enum `EstadoReclamo` y validación de transiciones
 * [ ] Estado "Espera de conexión / Alta por EDEA": pausa de SLA + recálculo de tiempo estimado (RF-17)
 * [ ] Refinar `calcularTiempoEstimado()` para considerar carga de cuadrillas y zona, no solo prioridad
-* [x] Endpoint "Paquete de Reclamo" (RF-11): `GET /api/reclamos/{id}/paquete` con `ReclamoPaqueteDTO` (vecino + tipo + prioridad + luminaria + historial)
+* [x] Endpoint "Paquete de Reclamo" (RF-11): `GET /api/reclamos/{id}/paquete` con `ReclamoPaqueteDTO` (vecino + tipo + prioridad + luminaria + historial + observaciones de la cuadrilla)
 * [ ] Indicador de disponibilidad de materiales en el paquete de reclamo (RF-18), sin exponer stock al Vecino
 * [x] Historial de estados del reclamo (tabla de auditoría o eventos)
 * [ ] Notificación al vecino ante cada cambio relevante de estado

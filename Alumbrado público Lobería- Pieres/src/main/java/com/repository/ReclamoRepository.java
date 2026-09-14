@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface ReclamoRepository extends JpaRepository<Reclamo, Long> {
     Optional<Reclamo> findByNumeroSeguimiento(String numeroSeguimiento);
     List<Reclamo> findByUsuarioId(Long usuarioId);
-    List<Reclamo> findByLuminariaId(Long luminariaId);
+    List<Reclamo> findByLuminariaIdOrderByFechaDesc(Long luminariaId);
     List<Reclamo> findByEstado(String estado);
 
     @Query("SELECT r FROM Reclamo r LEFT JOIN r.luminaria l LEFT JOIN l.zona z WHERE "

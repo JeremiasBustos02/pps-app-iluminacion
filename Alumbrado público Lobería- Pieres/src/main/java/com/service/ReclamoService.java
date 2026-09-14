@@ -33,6 +33,12 @@ public class ReclamoService {
     @Autowired
     private ReclamoHistorialRepository reclamoHistorialRepository;
 
+    @Autowired
+    private ReparacionRepository reparacionRepository;
+
+    @Autowired
+    private ReparacionService reparacionService;
+
     public List<Reclamo> findAll() {
         return reclamoRepository.findAll();
     }
@@ -133,6 +139,7 @@ public class ReclamoService {
         return reclamoRepository.filtrar(estado, zonaId, tipoReclamoId);
     }
 
+    @Transactional(readOnly = true)
     public ReclamoPaqueteDTO getPaquete(Long id) {
         // 1. Buscar el reclamo
         Reclamo reclamo = reclamoRepository.findById(id)
@@ -193,6 +200,10 @@ public class ReclamoService {
                 })
                 .toList();
         dto.setHistorial(historialDTO);
+
+        // 8. Bloque observaciones de la cuadrilla (RF-14)
+        List<Reparacion> reparaciones = reparacionRepository.findByReclamoIdOrderByFechaDesc(id);
+        dto.setObservacionesCuadrilla(reparaciones.stream().map(reparacionService::toResumen).toList());
 
         return dto;
     }

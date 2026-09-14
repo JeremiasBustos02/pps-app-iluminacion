@@ -3,6 +3,7 @@ package com.service;
 import com.enums.EstadoReclamo;
 import com.dto.MaterialConsumidoDTO;
 import com.dto.ReparacionDTO;
+import com.dto.ReparacionResumenDTO;
 import com.entity.*;
 import com.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,5 +111,27 @@ public class ReparacionService {
 
     public void delete(Long id) {
         reparacionRepository.deleteById(id);
+    }
+
+    // RF-14: resumen de una reparación (observación + técnicos + componentes averiados),
+    // reutilizado tanto en el paquete de reclamo (RF-11) como en el historial por luminaria.
+    @Transactional(readOnly = true)
+    public ReparacionResumenDTO toResumen(Reparacion reparacion) {
+        ReparacionResumenDTO dto = new ReparacionResumenDTO();
+        dto.setId(reparacion.getId());
+        dto.setObservacion(reparacion.getObservacion());
+        dto.setFecha(reparacion.getFecha());
+
+        List<String> tecnicos = reparacionTecnicoRepository.findByReparacionId(reparacion.getId()).stream()
+                .map(rt -> rt.getUsuario().getNombre())
+                .toList();
+        dto.setTecnicos(tecnicos);
+
+        List<String> componentes = reparacion.getComponentesAveriados().stream()
+                .map(rc -> rc.getComponente().getNombre() + " (" + rc.getEstadoComponente() + ")")
+                .toList();
+        dto.setComponentesAveriados(componentes);
+
+        return dto;
     }
 }
