@@ -1,0 +1,1301 @@
+{
+  "info": {
+    "name": "Alumbrado - RF-05 Mapa de luminarias / RF-06 Alta de puntos de luz",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{tokenAdmin}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "dniAdmin",
+      "value": "30111222"
+    },
+    {
+      "key": "passAdmin",
+      "value": ""
+    },
+    {
+      "key": "dniTecnico",
+      "value": "28999888"
+    },
+    {
+      "key": "passTecnico",
+      "value": ""
+    },
+    {
+      "key": "dniVecino",
+      "value": ""
+    },
+    {
+      "key": "passVecino",
+      "value": ""
+    },
+    {
+      "key": "tipoReclamoAltaId",
+      "value": "4"
+    },
+    {
+      "key": "tipoReclamoBajaId",
+      "value": "2"
+    },
+    {
+      "key": "tokenAdmin",
+      "value": ""
+    },
+    {
+      "key": "tokenTecnico",
+      "value": ""
+    },
+    {
+      "key": "tokenVecino",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Login (obtener tokens)",
+      "item": [
+        {
+          "name": "Login ADMINISTRADOR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"{{dniAdmin}}\",\n  \"password\": \"{{passAdmin}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenAdmin', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login TECNICO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"{{dniTecnico}}\",\n  \"password\": \"{{passTecnico}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenTecnico', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login VECINO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"{{dniVecino}}\",\n  \"password\": \"{{passVecino}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenVecino', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Zonas (obtener ids)",
+      "item": [
+        {
+          "name": "Listar zonas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/zonas"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const z = pm.response.json();",
+                  "const urbana = z.find(x => x.areaUrbana === true);",
+                  "const rural = z.find(x => x.nombre === 'Napaleufú');",
+                  "pm.test('hay zona urbana y Napaleufú (area_urbana=false)', () => { pm.expect(urbana).to.exist; pm.expect(rural).to.exist; pm.expect(rural.areaUrbana).to.eql(false); });",
+                  "pm.collectionVariables.set('zonaUrbanaId', urbana.id);",
+                  "pm.collectionVariables.set('zonaNoUrbanaId', rural.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. RF-06 Alta de puntos de luz",
+      "item": [
+        {
+          "name": "Admin: alta OK (LED, zona urbana)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"tipo\": \"LED\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('tipo LED y estado Funciona', () => { pm.expect(b.tipo).to.eql('LED'); pm.expect(b.estado).to.eql('Funciona'); });",
+                  "pm.collectionVariables.set('luminariaAltaId', b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: alta OK (halogeno sin tilde, zona NO urbana)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.2,\n  \"longitud\": -58.7,\n  \"tipo\": \"halogeno\",\n  \"zonaId\": \"{{zonaNoUrbanaId}}\",\n  \"potencia\": \"150W\",\n  \"columna\": \"Metalica\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('tipo normalizado a Halógeno', () => pm.expect(b.tipo).to.eql('Halógeno'));",
+                  "pm.collectionVariables.set('luminariaNoUrbanaId', b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: alta OK (LED, para prueba de amarillo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.151,\n  \"longitud\": -58.781,\n  \"tipo\": \"LED\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('luminariaBajaId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: sin coordenadas -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"LED\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: coordenadas fuera de rango -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": 95,\n  \"longitud\": -58.78,\n  \"tipo\": \"LED\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: sin tipo -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: tipo invalido (Sodio) -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"tipo\": \"Sodio\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: sin zona -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"tipo\": \"LED\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: zona inexistente -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"tipo\": \"LED\",\n  \"zonaId\": 999999\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tecnico: alta -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTecnico}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"tipo\": \"LED\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vecino: alta -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"tipo\": \"LED\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sin token -> 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -38.15,\n  \"longitud\": -58.78,\n  \"tipo\": \"LED\",\n  \"zonaId\": \"{{zonaUrbanaId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/luminarias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. RF-05 Mapa (semaforo y marca gris)",
+      "item": [
+        {
+          "name": "Vecino: mapa -> punto nuevo VERDE, sin marca gris",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const l = pm.response.json().find(x => x.id == pm.collectionVariables.get('luminariaAltaId'));",
+                  "pm.test('el punto esta en el mapa', () => pm.expect(l).to.exist);",
+                  "pm.test('color VERDE', () => pm.expect(l.color).to.eql('VERDE'));",
+                  "pm.test('marcaGris = false', () => pm.expect(l.marcaGris).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vecino: punto de zona no urbana -> VERDE + marcaGris",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const l = pm.response.json().find(x => x.id == pm.collectionVariables.get('luminariaNoUrbanaId'));",
+                  "pm.test('el punto esta en el mapa', () => pm.expect(l).to.exist);",
+                  "pm.test('color VERDE', () => pm.expect(l.color).to.eql('VERDE'));",
+                  "pm.test('marcaGris = true', () => pm.expect(l.marcaGris).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vecino: crea reclamo prioridad ALTA (Corte de luz) con observacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"luminariaId\": \"{{luminariaAltaId}}\",\n  \"tipoReclamoId\": \"{{tipoReclamoAltaId}}\",\n  \"observacion\": \"Toda la cuadra sin luz desde anoche\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reclamos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('reclamoAltaId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vecino: crea reclamo prioridad BAJA (Parpadeo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"luminariaId\": \"{{luminariaBajaId}}\",\n  \"tipoReclamoId\": \"{{tipoReclamoBajaId}}\",\n  \"observacion\": \"Parpadea a la noche\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reclamos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('reclamoBajaId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa: prioridad alta -> ROJO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const l = pm.response.json().find(x => x.id == pm.collectionVariables.get('luminariaAltaId'));",
+                  "pm.test('el punto esta en el mapa', () => pm.expect(l).to.exist);",
+                  "pm.test('color ROJO', () => pm.expect(l.color).to.eql('ROJO'));",
+                  "pm.test('marcaGris = false', () => pm.expect(l.marcaGris).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa: prioridad baja -> AMARILLO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const l = pm.response.json().find(x => x.id == pm.collectionVariables.get('luminariaBajaId'));",
+                  "pm.test('el punto esta en el mapa', () => pm.expect(l).to.exist);",
+                  "pm.test('color AMARILLO', () => pm.expect(l.color).to.eql('AMARILLO'));",
+                  "pm.test('marcaGris = false', () => pm.expect(l.marcaGris).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa filtrado por zona no urbana",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa?zonaId={{zonaNoUrbanaId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('solo puntos de esa zona', () => pm.response.json().forEach(p => pm.expect(p.zonaId).to.eql(Number(pm.collectionVariables.get('zonaNoUrbanaId')))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa: no expone datos tecnicos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json()[0];",
+                  "pm.test('sin tipo/potencia/columna', () => { pm.expect(p).to.not.have.property('tipo'); pm.expect(p).to.not.have.property('potencia'); pm.expect(p).to.not.have.property('columna'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sin token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tecnico: marca reclamo bajo ASIGNADO (sigue AMARILLO)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTecnico}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/reclamos/{{reclamoBajaId}}/estado?estado=ASIGNADO&observacion=Asignado a cuadrilla"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tecnico: reclamo bajo ESPERA_EDEA (pasa a ROJO: sin servicio confirmado)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTecnico}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/reclamos/{{reclamoBajaId}}/estado?estado=ESPERA_EDEA&observacion=Esperando conexion de EDEA"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa: ESPERA_EDEA -> ROJO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const l = pm.response.json().find(x => x.id == pm.collectionVariables.get('luminariaBajaId'));",
+                  "pm.test('el punto esta en el mapa', () => pm.expect(l).to.exist);",
+                  "pm.test('color ROJO', () => pm.expect(l.color).to.eql('ROJO'));",
+                  "pm.test('marcaGris = false', () => pm.expect(l.marcaGris).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tecnico: vuelve a ASIGNADO",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTecnico}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/reclamos/{{reclamoBajaId}}/estado?estado=ASIGNADO&observacion=Conexion realizada"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tecnico: reclamo bajo RESUELTO",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTecnico}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/reclamos/{{reclamoBajaId}}/estado?estado=RESUELTO&observacion=Reparado"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa: reclamo resuelto -> vuelve a VERDE",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/mapa"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const l = pm.response.json().find(x => x.id == pm.collectionVariables.get('luminariaBajaId'));",
+                  "pm.test('el punto esta en el mapa', () => pm.expect(l).to.exist);",
+                  "pm.test('color VERDE', () => pm.expect(l.color).to.eql('VERDE'));",
+                  "pm.test('marcaGris = false', () => pm.expect(l.marcaGris).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. RF-05 Detalle por clic (Tecnico/Admin)",
+      "item": [
+        {
+          "name": "Tecnico: detalle -> tecnologia + observacion del vecino",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTecnico}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/{{luminariaAltaId}}/detalle"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('tecnologia LED', () => pm.expect(b.tecnologia).to.eql('LED'));",
+                  "pm.test('color ROJO', () => pm.expect(b.color).to.eql('ROJO'));",
+                  "pm.test('observacion del vecino', () => pm.expect(b.observacionesVecino[0].observacion).to.eql('Toda la cuadra sin luz desde anoche'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin: detalle de punto no urbano (Halogeno, gris)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/{{luminariaNoUrbanaId}}/detalle"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('Halógeno + marcaGris', () => { pm.expect(b.tecnologia).to.eql('Halógeno'); pm.expect(b.marcaGris).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vecino: detalle -> 403 (oculto)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/{{luminariaAltaId}}/detalle"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vecino: GET luminaria -> sin datos tecnicos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVecino}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/{{luminariaNoUrbanaId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('tipo/potencia/columna ocultos', () => { pm.expect(b.tipo).to.eql(null); pm.expect(b.potencia).to.eql(null); pm.expect(b.columna).to.eql(null); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tecnico: GET luminaria -> con datos tecnicos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTecnico}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/{{luminariaNoUrbanaId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('tipo visible', () => pm.expect(pm.response.json().tipo).to.eql('Halógeno'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalle de luminaria inexistente -> 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/luminarias/999999/detalle"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

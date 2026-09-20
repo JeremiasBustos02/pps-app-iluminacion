@@ -26,6 +26,14 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, Long> {
                           @Param("zonaId") Long zonaId,
                           @Param("tipoReclamoId") Long tipoReclamoId);
 
+    // RF-05: reclamos activos de todas las luminarias en una sola consulta, para calcular el color del mapa
+    @Query("SELECT r.luminaria.id AS luminariaId, r.estado AS estado, t.prioridad AS prioridad "
+            + "FROM Reclamo r LEFT JOIN r.tipoReclamo t "
+            + "WHERE r.luminaria IS NOT NULL AND r.estado IN :estados")
+    List<ReclamoActivoView> findActivos(@Param("estados") List<EstadoReclamo> estados);
+
+    List<Reclamo> findByLuminariaIdAndEstadoInOrderByFechaDesc(Long luminariaId, List<EstadoReclamo> estados);
+
     // RF-08: correlativo real e incremental para el numeroSeguimiento (secuencia de la V3, antes sin usar)
     @Query(value = "SELECT nextval('reclamo_numero_seq')", nativeQuery = true)
     Long siguienteNumeroSeguimiento();

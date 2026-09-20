@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,8 @@ public class LuminariaService {
     @Autowired
     private ReparacionService reparacionService;
 
+    private static final String ESTADO_INICIAL = "Funciona";
+
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     public List<Luminaria> findAll() {
@@ -53,10 +56,46 @@ public class LuminariaService {
         return luminariaRepository.findByZonaIdAndDeletedAtIsNull(zonaId);
     }
 
+    // RF-06: alta de un nuevo punto de luz; coordenadas, tipo (LED/Halógeno) y zona son obligatorios
     public Luminaria save(LuminariaDTO dto) {
+        validarAlta(dto);
+        dto.setTipo(normalizarTipo(dto.getTipo()));
+        if (dto.getEstado() == null || dto.getEstado().isBlank()) {
+            dto.setEstado(ESTADO_INICIAL);
+        }
         Luminaria luminaria = new Luminaria();
         mapDtoToEntity(dto, luminaria);
         return luminariaRepository.save(luminaria);
+    }
+
+    private void validarAlta(LuminariaDTO dto) {
+        if (dto.getLatitud() == null || dto.getLongitud() == null) {
+            throw new RuntimeException("Debe indicar las coordenadas (latitud y longitud) del nuevo punto de luz");
+        }
+        if (dto.getLatitud() < -90 || dto.getLatitud() > 90 || dto.getLongitud() < -180 || dto.getLongitud() > 180) {
+            throw new RuntimeException("Las coordenadas están fuera de rango");
+        }
+        if (dto.getTipo() == null || dto.getTipo().isBlank()) {
+            throw new RuntimeException("Debe indicar el tipo de luminaria (LED o Halógeno)");
+        }
+        if (dto.getZonaId() == null) {
+            throw new RuntimeException("Debe indicar la zona del nuevo punto de luz");
+        }
+        zonaRepository.findById(dto.getZonaId())
+                .filter(z -> z.getDeletedAt() == null)
+                .orElseThrow(() -> new RuntimeException("Zona no encontrada con ID: " + dto.getZonaId()));
+    }
+
+    private String normalizarTipo(String tipo) {
+        String limpio = Normalizer.normalize(tipo.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        if (limpio.equalsIgnoreCase("LED")) {
+            return "LED";
+        }
+        if (limpio.equalsIgnoreCase("Halogeno")) {
+            return "Halógeno";
+        }
+        throw new RuntimeException("Tipo de luminaria inválido: debe ser LED o Halógeno");
     }
 
     public Luminaria update(Long id, LuminariaDTO details) {

@@ -30,8 +30,8 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-02 | Roles y permisos | 🟢 Completo | `Usuario.rol` es enum (`VECINO`, `TECNICO`, `ADMINISTRADOR`). Endpoints protegidos con `@PreAuthorize`. `GlobalExceptionHandler` traduce errores a 400/401/403 |
 | RF-03 | Autenticación (DNI + contraseña) | 🟢 Completo | Login con `POST /api/auth/login` (DNI + contraseña). JWT firmado con HS256, filtro `JwtAuthenticationFilter`, `SecurityConfig` protege todos los endpoints excepto `/api/auth/**`. DNI obligatorio y único (migración V8) |
 | RF-04 | Alta/baja/edición de usuarios (Admin) | 🟢 Completo | CRUD con soft delete, restringido a ADMINISTRADOR con `@PreAuthorize`. Validación de unicidad de DNI y email. Validación de rol TECNICO al asignar a cuadrilla |
-| RF-05 | Mapa de luminarias con semáforo de estado | 🟡 Parcial (solo datos) | `LuminariaResponseDTO` expone lat/lon, zona y estado; **no existe** cálculo de color según reclamos activos, ni ocultamiento de datos técnicos para el rol Vecino, ni marca gris para zonas no urbanas |
-| RF-06 | Alta de nuevos puntos de luz | 🟢 Backend listo | `POST /api/luminarias` con `LuminariaDTO` (coordenadas, tipo, zona). Falta restricción a rol Admin |
+| RF-05 | Mapa de luminarias con semáforo de estado | 🟢 Backend listo | `GET /api/luminarias/mapa` devuelve cada punto con color (verde: sin reclamos activos; amarillo: reclamo activo de prioridad media/baja; rojo: prioridad alta o sin servicio confirmado —ESPERA_EDEA o luminaria fuera de servicio—) y `marcaGris` para zonas con `area_urbana = false` (Napaleufú, Paraje Dos Naciones; migración V10). `GET /api/luminarias/{id}/detalle` (solo TECNICO/ADMINISTRADOR) expone tecnología (LED/Halógeno), potencia, columna y la observación del vecino de los reclamos activos (`Reclamo.observacion`). `GET /api/luminarias` oculta tipo/potencia/columna al rol Vecino. Falta el frontend |
+| RF-06 | Alta de nuevos puntos de luz | 🟢 Backend listo | `POST /api/luminarias` (solo ADMINISTRADOR) exige coordenadas (con validación de rango), tipo (`LED` o `Halógeno`, se normaliza) y zona activa; estado inicial "Funciona". Devuelve `LuminariaResponseDTO` y el punto aparece de inmediato en `GET /api/luminarias/mapa`. Falta el alta por clic en el mapa (frontend) |
 | RF-07 | Creación de reclamo por tipificación | 🟢 Completo | `ReclamoService.saveFromDTO()` exige luminaria (punto en el mapa) y tipo de reclamo del catálogo `tipo_reclamo` (7 opciones exigidas); el usuario se toma del JWT, no del body |
 | RF-08 | Número de seguimiento único | 🟢 Completo | Secuencia `reclamo_numero_seq` + formato `REC-YYYY-NNNNN`, búsqueda por `GET /api/reclamos/seguimiento/{n}` |
 | RF-09 | Prioridad automática por tipo | 🟢 Completo (dato) | `TipoReclamo.prioridad` seedeado; falta que el color del mapa (RF-05) y el orden de cola de trabajo lo usen |
@@ -158,10 +158,11 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 ### Fase 6 — Mapas y geolocalización (RF-05, RF-06)
 
 * [ ] Integrar Leaflet + react-leaflet
-* [ ] Renderizar luminarias con color según estado/prioridad de reclamos activos (RF-05)
-* [ ] Marca gris para puntos fuera de Área Urbana (Napaleufú, Paraje Dos Naciones)
-* [ ] Detalle por clic con datos técnicos (LED/Halógeno) visible solo para Técnico/Admin
-* [ ] Alta de luminaria haciendo clic en el mapa (RF-06)
+* [x] Endpoint con color según estado/prioridad de reclamos activos (RF-05): `GET /api/luminarias/mapa`. Falta renderizarlo con Leaflet
+* [x] Marca gris para puntos fuera de Área Urbana (Napaleufú, Paraje Dos Naciones): campo `marcaGris` según `zona.area_urbana`
+* [x] Detalle por clic con datos técnicos (LED/Halógeno) visible solo para Técnico/Admin: `GET /api/luminarias/{id}/detalle`
+* [x] Endpoint de alta de luminaria con validación (RF-06): `POST /api/luminarias`
+* [ ] Alta de luminaria haciendo clic en el mapa (RF-06, frontend)
 * [x] Filtrar luminarias por estado y zona con query params en `GET /api/luminarias`
 * [ ] Optimizar consultas espaciales con índices GIST (ya existe `idx_luminaria_coordenadas`)
 

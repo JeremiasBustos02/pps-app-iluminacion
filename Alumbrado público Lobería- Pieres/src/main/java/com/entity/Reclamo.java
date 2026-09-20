@@ -34,6 +34,10 @@ public class Reclamo {
 
     private LocalDateTime fecha;
 
+    // Observación libre del vecino al reportar (RF-05: se muestra en el detalle del mapa a Técnico/Admin)
+    @Column(length = 500)
+    private String observacion;
+
     @Column(name = "tiempo_estimado")
     private Integer tiempoEstimado;
 

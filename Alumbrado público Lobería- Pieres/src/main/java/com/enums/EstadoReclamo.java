@@ -16,6 +16,11 @@ public enum EstadoReclamo {
         this.transicionesValidas = transicionesValidas;
     }
 
+    // Un reclamo sigue activo hasta que se resuelve, se cierra o se rechaza (RF-05)
+    public boolean esActivo() {
+        return this == PENDIENTE || this == ASIGNADO || this == ESPERA_EDEA;
+    }
+
     public boolean puedeTransicionarA(EstadoReclamo destino) {
         return transicionesValidas.contains(destino.name());
     }

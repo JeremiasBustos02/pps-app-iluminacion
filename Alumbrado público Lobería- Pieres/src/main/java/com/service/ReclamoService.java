@@ -91,6 +91,14 @@ public class ReclamoService {
         Long correlativo = reclamoRepository.siguienteNumeroSeguimiento();
         reclamo.setNumeroSeguimiento(String.format("REC-%s-%05d", anioActual, correlativo));
 
+        if (dto.getObservacion() != null && !dto.getObservacion().isBlank()) {
+            String observacion = dto.getObservacion().trim();
+            if (observacion.length() > 500) {
+                throw new RuntimeException("La observación no puede superar los 500 caracteres");
+            }
+            reclamo.setObservacion(observacion);
+        }
+
         // Valores por defecto
         reclamo.setEstado(EstadoReclamo.PENDIENTE);
         reclamo.setFecha(LocalDateTime.now());

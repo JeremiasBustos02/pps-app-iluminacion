@@ -31,6 +31,7 @@ public class ZonaService {
         Zona zona = findById(id)
                 .orElseThrow(() -> new RuntimeException("Zona no encontrada: " + id));
         zona.setNombre(zonaDetails.getNombre());
+        zona.setAreaUrbana(zonaDetails.isAreaUrbana());
 
         return zonaRepository.save(zona);
     }

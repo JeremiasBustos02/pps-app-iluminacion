@@ -15,6 +15,10 @@ public class Zona {
     @Column(nullable = false, unique = true)
     private String nombre;
 
+    // RF-05: false para zonas no clasificadas como Área Urbana (Napaleufú, Paraje Dos Naciones)
+    @Column(name = "area_urbana", nullable = false)
+    private boolean areaUrbana = true;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
