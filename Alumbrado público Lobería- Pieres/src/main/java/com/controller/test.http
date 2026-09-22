@@ -1,3 +1,5 @@
+@tokenVecino = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5OTk5OTk5OSIsInJvbCI6IlZFQ0lOTyIsIm5vbWJyZSI6IlZlY2lubyBUZXN0IiwiaWF0IjoxNzkwMTE1MjkwLCJleHAiOjE3OTAyMDE2OTB9.AchKlAwLQopH-nz-tA5P9eWJrkEt8v9WiQCaasPMiu8
+
 ### Registro de usuario admin
 POST http://localhost:8080/api/auth/registro
 Content-Type: application/json
@@ -217,7 +219,46 @@ GET http://localhost:8080/api/luminarias?estado=Funciona
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzg5MDczMzcxLCJleHAiOjE3ODkxNTk3NzF9.KyP5E3FsixhfBoMWng1rsxLfKG2zLae2rlUiURC8rew
 
 
+### Registrar vecino
+POST http://localhost:8080/api/auth/registro
+Content-Type: application/json
 
+{
+  "nombre": "Vecino Test",
+  "email": "vecino@test.com",
+  "password": "123456",
+  "dni": 99999999
+}
+
+### Login como vecino
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "dni": 99999999,
+  "password": "123456"
+}
+
+### Mis reclamos (como vecino)
+GET http://localhost:8080/api/reclamos/mis-reclamos
+Authorization: Bearer {{tokenVecino}}
+
+### Crear reclamo como vecino
+POST http://localhost:8080/api/reclamos
+Authorization: Bearer {{tokenVecino}}
+Content-Type: application/json
+
+{
+  "luminariaId": 11,
+  "tipoReclamoId": 1,
+  "observacion": "La luminaria está apagada hace 3 días"
+}
+
+
+
+### Admin no puede acceder a mis-reclamos (debería dar 403)
+GET http://localhost:8080/api/reclamos/mis-reclamos
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTE1NTU4LCJleHAiOjE3OTAyMDE5NTh9.QzvVoOEbe9_lQDBGxyzc3Gj6miQdGvbQiKbITVk6Bkw
 
 
 

@@ -59,10 +59,14 @@ public class ReclamoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/usuario/{usuarioId}")
-    @PreAuthorize("hasAnyRole('VECINO', 'ADMINISTRADOR')")
-    public ResponseEntity<List<ReclamoResponseDTO>> getByUsuario(@PathVariable Long usuarioId) {
-        List<ReclamoResponseDTO> list = reclamoService.findByUsuario(usuarioId).stream()
+    @GetMapping("/mis-reclamos")
+    @PreAuthorize("hasRole('VECINO')")
+    public ResponseEntity<List<ReclamoResponseDTO>> getMisReclamos() {
+        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuarioAutenticado = usuarioService.findByDni(Long.valueOf(dni))
+                .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
+
+        List<ReclamoResponseDTO> list = reclamoService.findByUsuario(usuarioAutenticado.getId()).stream()
                 .map(ReclamoResponseDTO::new)
                 .toList();
         return ResponseEntity.ok(list);
