@@ -1,4 +1,4 @@
-@tokenVecino = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5OTk5OTk5OSIsInJvbCI6IlZFQ0lOTyIsIm5vbWJyZSI6IlZlY2lubyBUZXN0IiwiaWF0IjoxNzkwMTE1MjkwLCJleHAiOjE3OTAyMDE2OTB9.AchKlAwLQopH-nz-tA5P9eWJrkEt8v9WiQCaasPMiu8
+@tokenVecino = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5OTk5OTk5OSIsInJvbCI6IlZFQ0lOTyIsIm5vbWJyZSI6IlZlY2lubyBUZXN0IiwiaWF0IjoxNzkwMTE3NzY3LCJleHAiOjE3OTAyMDQxNjd9.tJBkj6lS8QjImZ1zoVSI9o5whmkLLlMj-28dZVY9xiw
 
 ### Registro de usuario admin
 POST http://localhost:8080/api/auth/registro
@@ -254,11 +254,90 @@ Content-Type: application/json
   "observacion": "La luminaria está apagada hace 3 días"
 }
 
-
-
 ### Admin no puede acceder a mis-reclamos (debería dar 403)
 GET http://localhost:8080/api/reclamos/mis-reclamos
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTE1NTU4LCJleHAiOjE3OTAyMDE5NTh9.QzvVoOEbe9_lQDBGxyzc3Gj6miQdGvbQiKbITVk6Bkw
+
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "dni": 12345678,
+  "password": "123456"
+}
+
+### Crear hoja de ruta
+POST http://localhost:8080/api/hojas-de-ruta
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTE3MzEwLCJleHAiOjE3OTAyMDM3MTB9.5-59b_2pf6z7v0EardppMW9xvAxuAhS2-xMl3ySrbHA
+Content-Type: application/json
+
+{
+  "fecha": "2026-09-22T08:00:00"
+}
+
+### Ver cuadrillas
+GET http://localhost:8080/api/cuadrillas
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTE3MzEwLCJleHAiOjE3OTAyMDM3MTB9.5-59b_2pf6z7v0EardppMW9xvAxuAhS2-xMl3ySrbHA
+
+### Crear hoja de ruta
+POST http://localhost:8080/api/hojas-de-ruta
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTE3MzEwLCJleHAiOjE3OTAyMDM3MTB9.5-59b_2pf6z7v0EardppMW9xvAxuAhS2-xMl3ySrbHA
+Content-Type: application/json
+
+{
+  "fecha": "2026-09-22T08:00:00",
+  "cuadrilla": {
+    "id": 1
+  }
+}
+
+### Crear reclamo 1
+POST http://localhost:8080/api/reclamos
+Authorization: Bearer {{tokenVecino}}
+Content-Type: application/json
+
+{
+  "luminariaId": 15,
+  "tipoReclamoId": 2,
+  "observacion": "Parpadea de noche"
+}
+
+### Crear reclamo 2
+POST http://localhost:8080/api/reclamos
+Authorization: Bearer {{tokenVecino}}
+Content-Type: application/json
+
+{
+  "luminariaId": 20,
+  "tipoReclamoId": 1,
+  "observacion": "Apagada hace una semana"
+}
+
+### Alta masiva
+POST http://localhost:8080/api/hoja-ruta-reclamos/batch
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTE3MzEwLCJleHAiOjE3OTAyMDM3MTB9.5-59b_2pf6z7v0EardppMW9xvAxuAhS2-xMl3ySrbHA
+Content-Type: application/json
+
+{
+  "hojaDeRutaId": 1,
+  "reclamoIds": [7, 8]
+}
+
+### Batch duplicado (debería devolver array vacío)
+POST http://localhost:8080/api/hoja-ruta-reclamos/batch
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTE3MzEwLCJleHAiOjE3OTAyMDM3MTB9.5-59b_2pf6z7v0EardppMW9xvAxuAhS2-xMl3ySrbHA
+Content-Type: application/json
+
+{
+  "hojaDeRutaId": 1,
+  "reclamoIds": [7, 8]
+}
+
+
+
+
 
 
 

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.dto.HojaDeRutaReclamoBatchDTO;
 
 import java.util.List;
 
@@ -31,4 +32,11 @@ public class HojaDeRutaReclamoController {
         hojaDeRutaReclamoService.removeReclamoFromHoja(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/batch")
+    public ResponseEntity<List<HojaDeRutaReclamo>> addReclamosBatch(@RequestBody HojaDeRutaReclamoBatchDTO dto) {
+        List<HojaDeRutaReclamo> creados = hojaDeRutaReclamoService.addReclamosBatch(dto.getHojaDeRutaId(), dto.getReclamoIds());
+        return ResponseEntity.status(HttpStatus.CREATED).body(creados);
+    }
+
 }
