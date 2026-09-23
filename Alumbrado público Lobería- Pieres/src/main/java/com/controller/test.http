@@ -1,4 +1,6 @@
 @tokenVecino = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5OTk5OTk5OSIsInJvbCI6IlZFQ0lOTyIsIm5vbWJyZSI6IlZlY2lubyBUZXN0IiwiaWF0IjoxNzkwMTE3NzY3LCJleHAiOjE3OTAyMDQxNjd9.tJBkj6lS8QjImZ1zoVSI9o5whmkLLlMj-28dZVY9xiw
+@tokenTecnico = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1NTU1NTU1NSIsInJvbCI6IlRFQ05JQ08iLCJub21icmUiOiJUZWNuaWNvIFRlc3QiLCJpYXQiOjE3OTAxOTIxNDIsImV4cCI6MTc5MDI3ODU0Mn0.mS3aLQs8gr5tCu6_Pj9ToYJV_4q1rjQYEd4UIwAU0AE
+
 
 ### Registro de usuario admin
 POST http://localhost:8080/api/auth/registro
@@ -335,10 +337,65 @@ Content-Type: application/json
   "reclamoIds": [7, 8]
 }
 
+### Crear técnico (como admin)
+POST http://localhost:8080/api/usuarios
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTkxMTYzLCJleHAiOjE3OTAyNzc1NjN9.QMTvaQG9m_gCLkwmqw35w1DHcwWtRgxBWh1BXV_fRCI
+Content-Type: application/json
 
+{
+  "nombre": "Tecnico Test",
+  "email": "tecnico@test.com",
+  "password": "123456",
+  "dni": 55555555,
+  "rol": "TECNICO"
+}
 
+### Asignar técnico a cuadrilla
+POST http://localhost:8080/api/cuadrilla-tecnicos
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTkxMTYzLCJleHAiOjE3OTAyNzc1NjN9.QMTvaQG9m_gCLkwmqw35w1DHcwWtRgxBWh1BXV_fRCI
+Content-Type: application/json
 
+{
+  "cuadrillaId": 1,
+  "tecnicoId": 3
+}
 
+### Crear hoja de ruta de hoy para cuadrilla 1
+POST http://localhost:8080/api/hojas-de-ruta
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTkxMTYzLCJleHAiOjE3OTAyNzc1NjN9.QMTvaQG9m_gCLkwmqw35w1DHcwWtRgxBWh1BXV_fRCI
+Content-Type: application/json
+
+{
+  "fecha": "2026-09-23T09:00:00",
+  "cuadrilla": {
+    "id": 1
+  }
+}
+
+### Login técnico
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "dni": 55555555,
+  "password": "123456"
+}
+
+### Mi hoja del día
+GET http://localhost:8080/api/hojas-de-ruta/mi-hoja-del-dia
+Authorization: Bearer {{tokenTecnico}}
+
+### Hoja de ruta de ayer (no debería aparecer en mi-hoja-del-dia)
+POST http://localhost:8080/api/hojas-de-ruta
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3OCIsInJvbCI6IkFETUlOSVNUUkFET1IiLCJub21icmUiOiJBZG1pbiBUZXN0IiwiaWF0IjoxNzkwMTkxMTYzLCJleHAiOjE3OTAyNzc1NjN9.QMTvaQG9m_gCLkwmqw35w1DHcwWtRgxBWh1BXV_fRCI
+Content-Type: application/json
+
+{
+  "fecha": "2026-09-22T09:00:00",
+  "cuadrilla": {
+    "id": 1
+  }
+}
 
 
 
