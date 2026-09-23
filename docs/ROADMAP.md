@@ -44,8 +44,8 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-16 | Alta y reposición de stock | 🟢 Completo | `PATCH /api/materiales/{id}/stock` permite fijar cantidad manualmente, pero no diferencia tipo de movimiento (ingreso/egreso) ni queda registrado como `MovimientoStock` automáticamente |
 | RF-17 | Estado "Espera de conexión / Alta EDEA" | 🟡 Parcial | `Reclamo.estado` es enum `EstadoReclamo` con validación de transiciones y historial (`ReclamoHistorial`). Falta pausa de SLA y recálculo de tiempo estimado al entrar/salir de ESPERA_EDEA |
 | RF-18 | Indicador de disponibilidad de materiales | 🟢 Completo | Depende de RF-13 y RF-15 |
-| RF-19 | Creación de hoja de ruta | 🟡 Parcial | CRUD de `HojaDeRuta` y de `HojaDeRutaReclamo` existen, pero agregar varios reclamos requiere múltiples llamadas (no hay endpoint de alta masiva) |
-| RF-20 | Visualización/actualización de hoja de ruta por Técnico | 🟡 Parcial | Endpoints de lectura y `PATCH /api/reclamos/{id}/estado` existen; falta que ese cambio dispare automáticamente el flujo de RF-13/RF-14 |
+| RF-19 | Creación de hoja de ruta | 🟢 Completo | CRUD de `HojaDeRuta` y de `HojaDeRutaReclamo`. Alta masiva con `POST /api/hoja-ruta-reclamos/batch` (recibe `hojaDeRutaId` + lista de `reclamoIds`, valida existencia y evita duplicados) |
+| RF-20 | Visualización/actualización de hoja de ruta por Técnico | 🟡 Parcial | `GET /api/hojas-de-ruta/mi-hoja-del-dia` (solo TECNICO) devuelve las hojas de la cuadrilla del técnico autenticado para la fecha de hoy (JWT → cuadrilla → hojas filtradas por rango del día). `PATCH /api/reclamos/{id}/estado` existe; falta que ese cambio dispare automáticamente el flujo de RF-13/RF-14 |
 | RF-21 | Panel de reportes e indicadores | 🔴 Pendiente | No hay endpoints de agregación (por zona, tiempo promedio, materiales consumidos) |
 
 **Leyenda:** 🟢 Completo · 🟡 Parcial / simplificado · 🔴 Pendiente
@@ -88,7 +88,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 * [x] Crear reclamo, asociar luminaria/tipo, generar número de seguimiento y tiempo estimado
 * [x] Asociar automáticamente el usuario autenticado al reclamo (sale del JWT, no del body)
-* [ ] Consultar reclamos propios (Vecino) e impedir ver reclamos de terceros
+* [x] Consultar reclamos propios (Vecino) e impedir ver reclamos de terceros: `GET /api/reclamos/mis-reclamos` (solo VECINO, toma el usuario del JWT)
 * [x] Filtros: por estado, zona y tipo de reclamo en `GET /api/reclamos` (query params opcionales combinables con `LEFT JOIN`)
 * [x] Definir máquina de estados de `Reclamo` con enum `EstadoReclamo` y validación de transiciones
 * [ ] Estado "Espera de conexión / Alta por EDEA": pausa de SLA + recálculo de tiempo estimado (RF-17)
@@ -108,8 +108,8 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 **Hojas de ruta**
 * [x] CRUD básico de `HojaDeRuta` y `HojaDeRutaReclamo`
-* [ ] Endpoint de alta masiva: agrupar varios reclamos pendientes en una hoja de ruta de una sola vez (RF-19)
-* [ ] Vista "hoja de ruta del día" filtrada por cuadrilla/técnico autenticado (RF-20)
+* [x] Endpoint de alta masiva: agrupar varios reclamos pendientes en una hoja de ruta de una sola vez (RF-19) — `POST /api/hoja-ruta-reclamos/batch`
+* [x] Vista "hoja de ruta del día" filtrada por cuadrilla/técnico autenticado (RF-20) — `GET /api/hojas-de-ruta/mi-hoja-del-dia`
 * [ ] Al marcar un reclamo como atendido desde la hoja de ruta, disparar el flujo de diagnóstico (RF-13) y observaciones (RF-14)
 
 ---
@@ -219,7 +219,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | Reclamos (paquete RF-11)   |       🟢 |
 | Reclamos (estados/SLA/EDEA)|       🟡 |
 | Cuadrillas                 |       🟢 |
-| Hojas de ruta               |       🟡 |
+| Hojas de ruta               |       🟢 |
 | Reparaciones (diagnóstico) |       🟢 |
 | Stock (descuento auto)     |       🟢 |
 | Notificaciones             |       🔴 |
@@ -238,7 +238,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 1. ~~**Seguridad**~~ ✅ Completado.
 2. ~~**Paquete de Reclamo (RF-11)**~~ ✅ Completado.
-3. **Pausa de SLA en ESPERA_EDEA** (RF-17): pausar/recalcular tiempo estimado al entrar/salir de este estado.
-4. **Alta masiva en hoja de ruta** (RF-19): agrupar varios reclamos en una hoja de una sola vez.
+3. ~~**Alta masiva en hoja de ruta (RF-19)**~~ ✅ Completado.
+4. **Pausa de SLA en ESPERA_EDEA** (RF-17): pausar/recalcular tiempo estimado al entrar/salir de este estado.
 5. Iniciar el **frontend** (mapa + flujo de creación de reclamo del vecino), que es lo primero demostrable de punta a punta.
 6. Notificaciones y reportes, una vez estabilizado el flujo core.
