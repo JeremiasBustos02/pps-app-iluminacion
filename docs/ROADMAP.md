@@ -18,7 +18,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 2. **Reglas de negocio pendientes**: validación de transiciones y pausa de SLA en ESPERA_EDEA (RF-17) completadas; el tiempo estimado considera prioridad, zona y carga de cuadrillas (RF-10).
 3. **Notificaciones** (RF-12): no hay dependencia de mail ni templates todavía.
 4. **Frontend completo**: no iniciado.
-5. **Reportes** (RF-21): no hay endpoints de agregación.
+5. ~~**Reportes** (RF-21)~~ ✅ Endpoints de agregación listos; falta el dashboard en el frontend.
 
 ---
 
@@ -46,7 +46,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | RF-18 | Indicador de disponibilidad de materiales | 🟢 Completo | Cada `Componente` tiene su material de repuesto (`componente.material_id`, migración V12). Al registrar la reparación (diagnóstico, RF-13) `DisponibilidadMaterialService` verifica el stock de los repuestos y de los materiales usados: si falta alguno (los faltantes no se descuentan) el reclamo pasa a `ESPERA_MATERIAL` en vez de `RESUELTO` y se corre el plazo 72 h (RF-10). La respuesta de `POST /api/reparaciones` y el paquete de reclamo (RF-11) incluyen `disponibilidadMateriales`; el vecino solo ve el estado y el tiempo estimado |
 | RF-19 | Creación de hoja de ruta | 🟢 Completo | CRUD de `HojaDeRuta` y de `HojaDeRutaReclamo`. Alta masiva con `POST /api/hoja-ruta-reclamos/batch` (recibe `hojaDeRutaId` + lista de `reclamoIds`, valida existencia y evita duplicados) |
 | RF-20 | Visualización/actualización de hoja de ruta por Técnico | 🟢 Completo | `GET /api/hojas-de-ruta/mi-hoja-del-dia` (solo TECNICO) devuelve las hojas del día de la cuadrilla del técnico autenticado con sus reclamos (estado, tipo, prioridad, zona, observación del vecino, fecha límite), ordenados por prioridad. `POST /api/hojas-de-ruta/mi-hoja-del-dia/reclamos/{reclamoId}/atender` marca el reclamo como atendido cargando diagnóstico (RF-13), observaciones obligatorias (RF-14) y materiales usados (RF-15); queda RESUELTO o en ESPERA_MATERIAL según stock (RF-18). `PATCH /api/reclamos/{id}/estado` ya no permite pasar a RESUELTO sin diagnóstico |
-| RF-21 | Panel de reportes e indicadores | 🔴 Pendiente | No hay endpoints de agregación (por zona, tiempo promedio, materiales consumidos) |
+| RF-21 | Panel de reportes e indicadores | 🟢 Backend listo | `GET /api/reportes/dashboard` (solo ADMINISTRADOR, período opcional `?desde=&hasta=`) devuelve reclamos por zona (activos/resueltos/rechazados), tiempo promedio de resolución general y por tipo (descontando espera EDEA) con % dentro de plazo, reparaciones por cuadrilla y por mes, y consumo/inversión en materiales. También por separado en `/api/reportes/reclamos-por-zona`, `/tiempo-resolucion`, `/reparaciones` y `/materiales`. Precio unitario en `material` y en cada `movimiento_stock` (migración V13, `PATCH /api/materiales/{id}/precio`). Falta el dashboard en el frontend |
 
 **Leyenda:** 🟢 Completo · 🟡 Parcial / simplificado · 🔴 Pendiente
 
@@ -179,10 +179,10 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 
 ### Fase 8 — Reportes (RF-21)
 
-* [ ] Endpoint: reclamos agrupados por zona
-* [ ] Endpoint: tiempo promedio de resolución (general y por tipo)
-* [ ] Endpoint: reparaciones realizadas por período/cuadrilla
-* [ ] Endpoint: consumo/inversión en materiales
+* [x] Endpoint: reclamos agrupados por zona
+* [x] Endpoint: tiempo promedio de resolución (general y por tipo)
+* [x] Endpoint: reparaciones realizadas por período/cuadrilla
+* [x] Endpoint: consumo/inversión en materiales
 * [ ] Dashboard administrativo consumiendo estos endpoints
 
 ---
@@ -224,7 +224,7 @@ funcional" a "sistema alineado con los RF" es, en este orden:
 | Stock (descuento auto)     |       🟢 |
 | Notificaciones             |       🔴 |
 | Mapas (frontend)           |       🔴 |
-| Reportes                   |       🔴 |
+| Reportes                   |       🟡 |
 | Frontend general           |       🔴 |
 | Testing                    |       🟡 |
 | Deploy                     |       🔴 |

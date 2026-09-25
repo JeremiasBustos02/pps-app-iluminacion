@@ -8,6 +8,7 @@ import com.enums.EstadoReclamo;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +39,13 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, Long> {
     @Query("SELECT COUNT(r) FROM Reclamo r WHERE r.estado IN :estados AND r.tipoReclamo.prioridad >= :prioridad")
     long contarEnColaConPrioridadMinima(@Param("estados") List<EstadoReclamo> estados,
                                         @Param("prioridad") Integer prioridad);
+
+    // RF-21: cantidad de reclamos por zona y estado en el período
+    @Query("SELECT new com.repository.ReporteRows$ReclamosPorZonaEstado(z.nombre, r.estado, COUNT(r)) "
+            + "FROM Reclamo r LEFT JOIN r.luminaria l LEFT JOIN l.zona z "
+            + "WHERE r.fecha BETWEEN :desde AND :hasta GROUP BY z.nombre, r.estado")
+    List<ReporteRows.ReclamosPorZonaEstado> contarPorZonaYEstado(@Param("desde") LocalDateTime desde,
+                                                                  @Param("hasta") LocalDateTime hasta);
 
     // RF-08: correlativo real e incremental para el numeroSeguimiento (secuencia de la V3, antes sin usar)
     @Query(value = "SELECT nextval('reclamo_numero_seq')", nativeQuery = true)

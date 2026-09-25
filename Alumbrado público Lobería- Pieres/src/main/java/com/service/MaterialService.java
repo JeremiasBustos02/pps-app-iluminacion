@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,6 +44,17 @@ public class MaterialService {
 
         MovimientoStock guardado = movimientoStockService.registrarMovimiento(movimiento);
         return guardado.getMaterial();
+    }
+
+    // RF-21: actualizar el precio unitario (no modifica los movimientos ya registrados)
+    @Transactional
+    public Material updatePrecio(Long id, BigDecimal precioUnitario) {
+        if (precioUnitario == null || precioUnitario.signum() < 0) {
+            throw new IllegalArgumentException("El precio unitario no puede ser negativo");
+        }
+        Material material = findById(id).orElseThrow(() -> new RuntimeException("Material no encontrado: " + id));
+        material.setPrecioUnitario(precioUnitario);
+        return materialRepository.save(material);
     }
 
     @Transactional
