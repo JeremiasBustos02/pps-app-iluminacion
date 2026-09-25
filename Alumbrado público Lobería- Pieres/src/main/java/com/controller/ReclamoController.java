@@ -89,6 +89,11 @@ public class ReclamoController {
     @PatchMapping("/{id}/estado")
     @PreAuthorize("hasAnyRole('TECNICO', 'ADMINISTRADOR')")
     public ResponseEntity<ReclamoResponseDTO> updateEstado(@PathVariable Long id, @RequestParam EstadoReclamo estado, @RequestParam String observacion) {
+        // RF-20: la resolución siempre pasa por el diagnóstico (RF-13) y las observaciones (RF-14)
+        if (estado == EstadoReclamo.RESUELTO) {
+            throw new IllegalArgumentException(
+                    "Para resolver un reclamo registre la reparación con el diagnóstico y las observaciones");
+        }
         Reclamo actualizado = reclamoService.updateEstado(id, estado, observacion);
         return ResponseEntity.ok(new ReclamoResponseDTO(actualizado));
     }

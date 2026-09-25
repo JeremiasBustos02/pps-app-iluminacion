@@ -41,6 +41,17 @@ public class Reclamo {
     @Column(name = "tiempo_estimado")
     private Integer tiempoEstimado;
 
+    // RF-17: plazo de resolución; se corre hacia adelante por el tiempo que el reclamo pasó en ESPERA_EDEA
+    @Column(name = "fecha_limite")
+    private LocalDateTime fechaLimite;
+
+    // RF-17: inicio de la pausa del SLA (null si el SLA está corriendo)
+    @Column(name = "sla_pausado_desde")
+    private LocalDateTime slaPausadoDesde;
+
+    @Column(name = "minutos_pausa", nullable = false)
+    private Integer minutosPausa = 0;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

@@ -1,5 +1,6 @@
 package com.service;
 
+import com.dto.DisponibilidadMaterialesDTO;
 import com.dto.ReclamoDTO;
 import com.entity.*;
 import com.repository.*;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dto.ReclamoPaqueteDTO;
 import com.entity.ReclamoHistorial;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
@@ -38,6 +40,9 @@ public class ReclamoService {
 
     @Autowired
     private ReparacionService reparacionService;
+
+    @Autowired
+    private TiempoEstimadoService tiempoEstimadoService;
 
     public List<Reclamo> findAll() {
         return reclamoRepository.findAll();
@@ -103,6 +108,13 @@ public class ReclamoService {
         reclamo.setEstado(EstadoReclamo.PENDIENTE);
         reclamo.setFecha(LocalDateTime.now());
 
+        // RF-10: tiempo estimado según prioridad, zona y carga de las cuadrillas
+        Integer horas = tiempoEstimadoService.calcular(tipoReclamo, luminaria);
+        reclamo.setTiempoEstimado(horas);
+        if (horas != null) {
+            reclamo.setFechaLimite(reclamo.getFecha().plusHours(horas));
+        }
+
         return reclamoRepository.save(reclamo);
     }
 
@@ -122,9 +134,17 @@ public class ReclamoService {
                     "No se puede pasar de " + estadoAnterior + " a " + nuevoEstado);
         }
 
-        // RF-17 y RF-10 - Lógica de pausa de SLA
+        // RF-17: mientras el reclamo espera el alta de EDEA el SLA municipal queda pausado
         if (nuevoEstado == EstadoReclamo.ESPERA_EDEA) {
-            // Logica de espera EDEA
+            pausarSla(reclamo, LocalDateTime.now());
+        } else if (estadoAnterior == EstadoReclamo.ESPERA_EDEA) {
+            reanudarSla(reclamo, LocalDateTime.now());
+        }
+
+        // RF-18: la falta de repuesto no pausa el SLA (es material municipal), pero corre el plazo
+        // informado al vecino por el tiempo de reposición
+        if (nuevoEstado == EstadoReclamo.ESPERA_MATERIAL) {
+            extenderPlazo(reclamo, TiempoEstimadoService.HORAS_REPOSICION_MATERIAL * 60L);
         }
 
         // 1. Actualizar el estado en el reclamo
@@ -141,6 +161,38 @@ public class ReclamoService {
         reclamoHistorialRepository.save(historial);
 
         return reclamoGuardado;
+    }
+
+    void pausarSla(Reclamo reclamo, LocalDateTime ahora) {
+        if (reclamo.getSlaPausadoDesde() == null) {
+            reclamo.setSlaPausadoDesde(ahora);
+        }
+    }
+
+    // RF-17 / RF-10: al recibir el alta de EDEA se corre el plazo por el tiempo pausado
+    // y se actualiza el tiempo estimado informado al vecino
+    void reanudarSla(Reclamo reclamo, LocalDateTime ahora) {
+        LocalDateTime desde = reclamo.getSlaPausadoDesde();
+        if (desde == null) {
+            return;
+        }
+        long minutos = Math.max(0, Duration.between(desde, ahora).toMinutes());
+        reclamo.setMinutosPausa(reclamo.getMinutosPausa() + (int) minutos);
+        reclamo.setSlaPausadoDesde(null);
+
+        extenderPlazo(reclamo, minutos);
+    }
+
+    // Corre la fecha límite y actualiza el tiempo estimado informado al vecino (RF-10)
+    void extenderPlazo(Reclamo reclamo, long minutos) {
+        if (reclamo.getFechaLimite() == null) {
+            return;
+        }
+        reclamo.setFechaLimite(reclamo.getFechaLimite().plusMinutes(minutos));
+        if (reclamo.getFecha() != null) {
+            long totalMinutos = Duration.between(reclamo.getFecha(), reclamo.getFechaLimite()).toMinutes();
+            reclamo.setTiempoEstimado((int) Math.ceil(totalMinutos / 60.0));
+        }
     }
 
     public List<Reclamo> filtrar(EstadoReclamo estado, Long zonaId, Long tipoReclamoId) {
@@ -164,6 +216,9 @@ public class ReclamoService {
         dto.setEstado(reclamo.getEstado());
         dto.setFecha(reclamo.getFecha());
         dto.setTiempoEstimado(reclamo.getTiempoEstimado());
+        dto.setSlaPausado(reclamo.getSlaPausadoDesde() != null);
+        dto.setFechaEstimadaResolucion(dto.isSlaPausado() ? null : reclamo.getFechaLimite());
+        dto.setMinutosPausa(reclamo.getMinutosPausa());
 
         // 4. Bloque tipo de reclamo
         if (reclamo.getTipoReclamo() != null) {
@@ -212,6 +267,14 @@ public class ReclamoService {
         // 8. Bloque observaciones de la cuadrilla (RF-14)
         List<Reparacion> reparaciones = reparacionRepository.findByReclamoIdOrderByFechaDesc(id);
         dto.setObservacionesCuadrilla(reparaciones.stream().map(reparacionService::toResumen).toList());
+
+        // 9. RF-18: disponibilidad actual de los repuestos del último diagnóstico
+        if (!reparaciones.isEmpty()) {
+            DisponibilidadMaterialesDTO disponibilidad =
+                    reparacionService.disponibilidadDelDiagnostico(reparaciones.get(0));
+            disponibilidad.setBloqueadoPorMaterial(reclamo.getEstado() == EstadoReclamo.ESPERA_MATERIAL);
+            dto.setDisponibilidadMateriales(disponibilidad);
+        }
 
         return dto;
     }

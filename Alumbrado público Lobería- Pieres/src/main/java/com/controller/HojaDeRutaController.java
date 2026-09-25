@@ -1,5 +1,8 @@
 package com.controller;
 
+import com.dto.HojaDelDiaDTO;
+import com.dto.ReparacionDTO;
+import com.dto.ReparacionResponseDTO;
 import com.entity.HojaDeRuta;
 import com.entity.Usuario;
 import com.service.HojaDeRutaService;
@@ -47,12 +50,24 @@ public class HojaDeRutaController {
 
     @GetMapping("/mi-hoja-del-dia")
     @PreAuthorize("hasRole('TECNICO')")
-    public ResponseEntity<List<HojaDeRuta>> getMiHojaDelDia() {
-        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario usuarioAutenticado = usuarioService.findByDni(Long.valueOf(dni))
-                .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
+    public ResponseEntity<List<HojaDelDiaDTO>> getMiHojaDelDia() {
+        return ResponseEntity.ok(hojaDeRutaService.getMiHojaDelDia(usuarioAutenticado().getId()));
+    }
 
-        List<HojaDeRuta> hojas = hojaDeRutaService.findMiHojaDelDia(usuarioAutenticado.getId());
-        return ResponseEntity.ok(hojas);
+    // RF-20: el técnico marca como atendido un reclamo de su hoja del día cargando el diagnóstico
+    // (componentes rotos, RF-13), observaciones (RF-14) y materiales usados (RF-15)
+    @PostMapping("/mi-hoja-del-dia/reclamos/{reclamoId}/atender")
+    @PreAuthorize("hasRole('TECNICO')")
+    public ResponseEntity<ReparacionResponseDTO> atenderReclamo(@PathVariable Long reclamoId,
+                                                                @RequestBody ReparacionDTO diagnostico) {
+        ReparacionResponseDTO resultado =
+                hojaDeRutaService.atenderReclamo(usuarioAutenticado().getId(), reclamoId, diagnostico);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
+    }
+
+    private Usuario usuarioAutenticado() {
+        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
+        return usuarioService.findByDni(Long.valueOf(dni))
+                .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
     }
 }

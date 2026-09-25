@@ -15,6 +15,10 @@ public class ReclamoPaqueteDTO {
     private EstadoReclamo estado;
     private LocalDateTime fecha;
     private Integer tiempoEstimado;
+    // RF-17: con el SLA pausado (espera EDEA) no se informa fecha estimada
+    private boolean slaPausado;
+    private LocalDateTime fechaEstimadaResolucion;
+    private Integer minutosPausa;
 
     // Bloques anidados
     private TipoReclamoInfo tipoReclamo;
@@ -22,6 +26,8 @@ public class ReclamoPaqueteDTO {
     private LuminariaInfo luminaria;
     private List<HistorialInfo> historial;
     private List<ReparacionResumenDTO> observacionesCuadrilla;
+    // RF-18: repuestos del último diagnóstico y si el reclamo está bloqueado por falta de material
+    private DisponibilidadMaterialesDTO disponibilidadMateriales;
 
     // --- DTOs internos ---
 

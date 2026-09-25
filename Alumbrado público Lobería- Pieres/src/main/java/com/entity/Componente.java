@@ -17,6 +17,11 @@ public class Componente {
 
     private String descripcion;
 
+    // RF-18: material de stock que repone este componente (null si no requiere repuesto)
+    @ManyToOne
+    @JoinColumn(name = "material_id")
+    private Material repuesto;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 

@@ -39,8 +39,7 @@ public class ReparacionController {
     @PostMapping
     @PreAuthorize("hasAnyRole('TECNICO', 'ADMINISTRADOR')")
     public ResponseEntity<ReparacionResponseDTO> create(@RequestBody ReparacionDTO dto) {
-        Reparacion reparacion = reparacionService.registrarReparacion(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ReparacionResponseDTO(reparacion));
+        return ResponseEntity.status(HttpStatus.CREATED).body(reparacionService.registrarReparacion(dto));
     }
 
     @DeleteMapping("/{id}")

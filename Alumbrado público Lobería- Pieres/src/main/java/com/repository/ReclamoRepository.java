@@ -34,6 +34,11 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, Long> {
 
     List<Reclamo> findByLuminariaIdAndEstadoInOrderByFechaDesc(Long luminariaId, List<EstadoReclamo> estados);
 
+    // RF-10: reclamos en cola de trabajo con prioridad igual o mayor a la indicada
+    @Query("SELECT COUNT(r) FROM Reclamo r WHERE r.estado IN :estados AND r.tipoReclamo.prioridad >= :prioridad")
+    long contarEnColaConPrioridadMinima(@Param("estados") List<EstadoReclamo> estados,
+                                        @Param("prioridad") Integer prioridad);
+
     // RF-08: correlativo real e incremental para el numeroSeguimiento (secuencia de la V3, antes sin usar)
     @Query(value = "SELECT nextval('reclamo_numero_seq')", nativeQuery = true)
     Long siguienteNumeroSeguimiento();
