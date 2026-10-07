@@ -13,6 +13,9 @@ public class ReclamoResponseDTO {
     private EstadoReclamo estado;
     private LocalDateTime fecha;
     private Integer tiempoEstimado;
+    // RF-17: con el SLA pausado (espera EDEA) no se informa fecha estimada al vecino
+    private boolean slaPausado;
+    private LocalDateTime fechaEstimadaResolucion;
     private Long luminariaId;
     private Long tipoReclamoId;
     private String tipoReclamoNombre;
@@ -25,6 +28,8 @@ public class ReclamoResponseDTO {
         this.estado = reclamo.getEstado();
         this.fecha = reclamo.getFecha();
         this.tiempoEstimado = reclamo.getTiempoEstimado();
+        this.slaPausado = reclamo.getSlaPausadoDesde() != null;
+        this.fechaEstimadaResolucion = this.slaPausado ? null : reclamo.getFechaLimite();
 
         if (reclamo.getLuminaria() != null) {
             this.luminariaId = reclamo.getLuminaria().getId();

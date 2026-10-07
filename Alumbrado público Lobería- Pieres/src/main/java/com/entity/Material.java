@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -21,6 +22,10 @@ public class Material {
 
     private String nombre;
     private Integer cantidad;
+
+    // RF-21: precio unitario vigente, para calcular consumo e inversión en materiales
+    @Column(name = "precio_unitario", precision = 12, scale = 2)
+    private BigDecimal precioUnitario;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;

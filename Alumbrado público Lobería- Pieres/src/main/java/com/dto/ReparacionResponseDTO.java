@@ -1,6 +1,7 @@
 package com.dto;
 
 import com.entity.Reparacion;
+import com.enums.EstadoReclamo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,9 @@ public class ReparacionResponseDTO {
     private LocalDateTime fecha;
     private Long reclamoId;
     private String reclamoNumeroSeguimiento;
+    private EstadoReclamo estadoReclamo;
+    // RF-18: se completa al registrar la reparación (diagnóstico)
+    private DisponibilidadMaterialesDTO disponibilidadMateriales;
 
     public ReparacionResponseDTO(Reparacion reparacion) {
         this.id = reparacion.getId();
@@ -21,6 +25,7 @@ public class ReparacionResponseDTO {
         if (reparacion.getReclamo() != null) {
             this.reclamoId = reparacion.getReclamo().getId();
             this.reclamoNumeroSeguimiento = reparacion.getReclamo().getNumeroSeguimiento();
+            this.estadoReclamo = reparacion.getReclamo().getEstado();
         }
     }
 }

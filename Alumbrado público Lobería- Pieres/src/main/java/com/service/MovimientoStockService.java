@@ -63,8 +63,12 @@ public class MovimientoStockService {
             movimiento.setFecha(LocalDateTime.now());
         }
 
-        // 5. Vincular y persistir ambas entidades
+        // 5. Vincular y persistir ambas entidades.
+        // RF-21: se guarda el precio vigente para que los reportes históricos no cambien con el precio
         movimiento.setMaterial(mat);
+        if (movimiento.getPrecioUnitario() == null) {
+            movimiento.setPrecioUnitario(mat.getPrecioUnitario());
+        }
         materialRepository.save(mat);
 
         return movimientoStockRepository.save(movimiento);

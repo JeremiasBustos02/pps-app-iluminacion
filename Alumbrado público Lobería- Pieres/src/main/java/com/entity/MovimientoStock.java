@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -34,6 +35,10 @@ public class MovimientoStock {
     private TipoMovimiento tipo;
 
     private Integer cantidad;
+
+    // RF-21: precio del material al momento del movimiento
+    @Column(name = "precio_unitario", precision = 12, scale = 2)
+    private BigDecimal precioUnitario;
     private LocalDateTime fecha;
 
     @Column(name = "created_at", updatable = false)

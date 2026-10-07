@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -42,6 +43,12 @@ public class MaterialController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Material> updateStock(@PathVariable Long id, @RequestParam Integer cantidad, @RequestParam TipoMovimiento tipo) {
         return ResponseEntity.ok(materialService.updateStock(id, cantidad, tipo));
+    }
+
+    @PatchMapping("/{id}/precio")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Material> updatePrecio(@PathVariable Long id, @RequestParam BigDecimal precioUnitario) {
+        return ResponseEntity.ok(materialService.updatePrecio(id, precioUnitario));
     }
 
     @DeleteMapping("/{id}")
